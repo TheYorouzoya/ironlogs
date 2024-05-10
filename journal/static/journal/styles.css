@@ -1,0 +1,17 @@
+body {
+  background-color: #1D2E28;
+  color: white;
+}
+
+nav a {
+  cursor: pointer;
+}
+
+#calendar-dates .date-faded {
+  color: rgb(78, 78, 78);
+}
+#calendar-dates .date-marked {
+  background-color: white;
+  color: grey;
+  cursor: pointer;
+}/*# sourceMappingURL=styles.css.map */

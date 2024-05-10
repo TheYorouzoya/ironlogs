@@ -1,0 +1,111 @@
+{% extends "journal/layout.html" %}
+{% load static %}
+
+{% block title %}
+    {{ user.username }}'s Journal
+{% endblock %}
+
+{% block header %}
+    <nav class="navbar navbar-expand-lg bg-body-tertiary" data-bs-theme="dark">
+        <div class="container-fluid">
+        <a class="navbar-brand" id="journal">Your Journal</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+            <div class="navbar-nav">
+            <a class="nav-link" id="entries">Entries</a>
+            <a class="nav-link" id="program">Program</a>
+            <a class="nav-link" id="exercises">Exercises</a>
+            </div>
+        </div>
+        </div>
+    </nav>
+{% endblock %}
+
+{% block body %}
+    <div id="content" class="container" data-bs-theme="dark">
+        <div id="message"></div>
+        <div id="journal-view">
+            <div class="row">
+                <div id="journal-program-container" class="col-md-auto"></div>
+                <div id="journal-workout-container" class="col-md-auto"></div>
+            </div>
+            <div id="journal-form"></div>
+        </div>
+        <div id="entries-view">
+            <div id="entries-calendar-container" class="container">
+                <div id="calendar-header" class="row">
+                    <div id="calendar-current-date" class="col display-6"></div>
+                    <div id="calendar-nav" class="col text-end">
+                        
+                    </div>
+                </div>
+                <div id="calendar-body" class="container text-center">
+                    <div id="calendar-days" class="row">
+                        <div class="col">Sun</div>
+                        <div class="col">Mon</div>
+                        <div class="col">Tue</div>
+                        <div class="col">Wed</div>
+                        <div class="col">Thu</div>
+                        <div class="col">Fri</div>
+                        <div class="col">Sat</div>
+                    </div>
+                    <div id="calendar-dates"></div>
+                </div>
+            </div>
+            <div id="entries-form-container">
+                <form id="entries-form">
+                    <div class="mb-3">
+                        <label for="entriesStartDate" class="form-label"> Start Date: </label>
+                        <input class="form-control" type="date" id="entriesStartDate">
+                    </div>
+                    <div class="mb-3">
+                        <label for="entriesEndDate" class="form-label"> End Date: </label>
+                        <input class="form-control" type="date" id="entriesEndDate">
+                    </div>
+                    <div class="mb-3">
+                        <button type="submit" class="btn btn-primary mb-3">Get Entries</button>
+                    </div>
+                </form>
+            </div>
+            <div id="entries-header"></div>
+            <div id="entries-container"></div>
+        </div>
+        <div id="program-view">
+            <div id="program-view-header" class="display-6">Your Programs</div>
+            <div id="program-view-container">
+                <div id="program-view-form-container">
+                    <button id="program-add-button" class="btn btn-primary">Add Program</button>
+                    <form id="program-view-program-form">
+
+                    </form>
+                    <form id="program-view-workout-form">
+                        
+                    </form>
+                    <form id="program-view-exercise-form">
+
+                    </form>
+                </div>
+                <div id="program-view-content">
+                    <div id="program-view-program"></div>
+                    <div id="program-view-program-container"></div>
+                    <div id="program-view-workout-container"></div>
+                </div>
+            </div>
+        </div>
+        <div id="exercises-view"></div>
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script src="{% static 'journal/views.js' %}?{% now 'U' %}"></script>
+    <script src="{% static 'journal/journal.js' %}?{% now 'U' %}"></script>
+    <script src="{% static 'journal/entries.js' %}?{% now 'U' %}"></script>
+    <script src="{% static 'journal/program.js' %}?{% now 'U' %}"></script>
+    <script src="{% static 'journal/exercises.js' %}?{% now 'U' %}"></script>
+    <script>
+        var CSRF_TOKEN = '{{ csrf_token }}'
+    </script>
+    <link rel="stylesheet" href="{% static 'journal/styles.css' %}?{% now 'U' %}">
+{% endblock %}
