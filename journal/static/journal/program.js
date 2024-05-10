@@ -294,7 +294,16 @@ function pv_loadWorkouts(programId) {
             workoutHeader.append(heading, addWorkoutButton);
             workoutContainer.append(workoutHeader);
 
+            const helptext= document.createElement('div');
+            helptext.textContent = "Each day in your program corresponds to a workout. "
+                + "Each workout, then, has a bunch of exercises in it. "
+                + "Here's a table of all the workouts in this program. "
+                + "Click on a row to look at all the exercises within the workout.";
+            
+            workoutContainer.append(helptext);
+
             const table = returnWorkoutTable(workouts);
+            table.setAttribute("id", "pv-workout-table");
             workoutContainer.append(table);
 
             pvContent.append(workoutContainer);
@@ -303,5 +312,55 @@ function pv_loadWorkouts(programId) {
 }
 
 function returnWorkoutTable(workouts) {
+    const table = document.createElement('table');
+    const head = document.createElement('thead');
+    const body = document.createElement('tbody');
+
+    table.classList.add("table", "table-hover");
+
+    var row = document.createElement('tr');
+    var header = document.createElement('th');
+    header.setAttribute('scope', 'col');
+    header.textContent = "Day";
+
+    row.appendChild(header);
     
+    header = document.createElement('th');
+    header.setAttribute('scope', 'col');
+    header.textContent = "Workout";
+
+    row.appendChild(header);
+
+    head.appendChild(row);
+    table.appendChild(head);
+
+    
+    var days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+    for (var i = 0; i < 7; i++) {
+        row = document.createElement('tr');
+        row.setAttribute("id", "row-" + i);
+
+        const day = document.createElement('td');
+        day.textContent = days[i];
+
+        const workout = document.createElement('td');
+        workout.setAttribute("id", "row-workout-" + i);
+        workout.textContent = "----";
+
+        row.append(day, workout);
+        body.append(row);
+    }
+
+    workouts.forEach(workout => {
+        workout["days"].forEach(day => {
+            row = body.querySelector('#row-' + day["dayNum"]);
+            row.dataset.workoutId = workout["id"];
+            row.querySelector('#row-workout-' + day["dayNum"]).textContent = workout["name"];
+        })
+    });
+
+    table.append(body);
+    return table;
+
 }
