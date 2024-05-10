@@ -69,7 +69,7 @@ function displayMessage(message, successFlag) {
     message_container.append(messageDiv);
 }
 
-function returnTextInputField(labelText, fieldId, helpText, textAreaFlag) {
+function returnTextInputField(labelText, fieldId, helpText, textAreaFlag, preFillValue) {
     const container = document.createElement('div');
     container.classList.add("mb-3");
 
@@ -89,6 +89,7 @@ function returnTextInputField(labelText, fieldId, helpText, textAreaFlag) {
     input.classList.add("form-control");
     input.setAttribute("id", fieldId);
     input.setAttribute("aria-describedby", fieldId + "-HelpBlock");
+    input.value = preFillValue;
 
     const help_block = document.createElement('div');
     help_block.classList.add("form-text");

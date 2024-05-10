@@ -84,8 +84,8 @@ def register(request):
 def program(request):
     if request.method == "POST":
         data = json.loads(request.body)
-        programName = data["program-name"]
-        programDescription = data["program-description"]
+        programName = data["name"]
+        programDescription = data["description"]
 
         if (not (programName.strip())):
             return JsonResponse({
@@ -119,6 +119,7 @@ def program(request):
     
     elif request.method == "PUT":
         data = json.loads(request.body)
+        print(data)
         id = data["id"]
         name = data["name"]
         description = data["description"]
