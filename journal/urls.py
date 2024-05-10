@@ -9,13 +9,14 @@ urlpatterns = [
 
     # API Routes
 
-    # Program APIs
+    # Program
     path("program/", views.program, name="program"),
     path("program/all/", views.allPrograms, name="allPrograms"),
-    path("program/<str:programId>", views.fetchProgram, name="fetchProgram"),
+    path("program/<str:programId>/workouts", views.programWorkouts, name="programWorkouts"),
 
-    # For a singular workout
-    path("workout/<str:workoutId>", views.workout, name="workout"),
+    # Workouts
+    path("workout/", views.workout, name="workout"),
+    path("workout/<str:workoutId>/exercises", views.workoutExercises, name="workoutExercises"),
     
     # For a singular entry
     path("entry/", views.entry, name="entry"),

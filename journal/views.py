@@ -104,18 +104,70 @@ def program(request):
             "programId": program.id
         }, status=201)
     
+    elif request.method == "GET":
+        id = request.GET.get("id")
+        try:
+            program = Program.objects.get(id=id, trainee=request.user)
+        except Program.DoesNotExist:
+            return JsonResponse({
+                "error": "Program does not exist"
+            }, status=404)
+
+        return JsonResponse({
+            "program": program.serialize()
+        }, status=200)
     
+    elif request.method == "PUT":
+        data = json.loads(request.body)
+        id = data["id"]
+        name = data["name"]
+        description = data["description"]
+
+        try:
+            program = Program.objects.get(id=id, trainee=request.user)
+        except Program.DoesNotExist:
+            return JsonResponse({
+                "error": "Program does not exist"
+            }, status=404)
+
+        program.name = name
+        program.description = description
+        program.save()
+
+        return JsonResponse({
+            "message": "Successfully updated program details"
+        }, status=200)
+    
+    elif request.method == "DELETE":
+        id = request.GET.get("id")
+        try:
+            program = Program.objects.get(id=id, trainee=request.user)
+        except Program.DoesNotExist:
+            return JsonResponse({
+                "error": "Program does not exist!"
+            })
+        
+        
+        if (request.user.current_program == program):
+            request.user.current_program = None
+            request.user.save()
+
+        program.delete()
+
+        return JsonResponse({
+            "message": "Program deleted successfully"
+        }, status=200)
 
 
 
 @login_required
-def fetchProgram(request, programId):
+def programWorkouts(request, programId):
     if (programId == 'current'):    
         try:
             program = request.user.current_program
         except Program.DoesNotExist:
             return JsonResponse({
-                "error": "User has no active programs."
+                "message": "User has no active programs."
                 }, status=204)
     else:
         try:
@@ -143,7 +195,12 @@ def allPrograms(request):
 
 
 @login_required
-def workout(request, workoutId):
+def workout(request):
+    pass
+
+
+@login_required
+def workoutExercises(request, workoutId):
     workout = Workout.objects.get(id=workoutId)
     exercises = Exercise.objects.filter(workout=workout)
     
@@ -152,6 +209,11 @@ def workout(request, workoutId):
         "exercises": [exercise.serialize() for exercise in exercises]
         }, safe=False)
 
+
+@login_required
+def fetchWorkouts(request, programId):
+    pass
+        
 
 @login_required
 def entry(request):

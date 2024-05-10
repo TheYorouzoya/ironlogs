@@ -8,7 +8,7 @@ function loadProgram(programId, workoutContainer, exerciseContainer, formFlag) {
     // Erase current container
     document.querySelector(workoutContainer).innerHTML = "";
     document.querySelector(exerciseContainer).innerHTML = "";
-    fetch(`program/${programId}`)
+    fetch(`program/${programId}/workouts`)
 
     .then(response => response.json())
     .then(data => {
@@ -82,7 +82,7 @@ function loadProgram(programId, workoutContainer, exerciseContainer, formFlag) {
 }
 
 function loadWorkout(workoutId, containerId, formFlag) {
-    fetch(`workout/${workoutId}`)
+    fetch(`workout/${workoutId}/exercises`)
 
     .then(response => response.json())
     .then(data => {

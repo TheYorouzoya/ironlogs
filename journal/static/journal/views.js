@@ -34,10 +34,6 @@ document.addEventListener('DOMContentLoaded', function() {
         submitEntriesForm(event);
     });
 
-    document.querySelector('#program-add-button').addEventListener('click', () => {
-        addProgramForm();
-    });
-
     // By default, load the journal view
     loadJournalView();
 });
@@ -101,4 +97,14 @@ function returnTextInputField(labelText, fieldId, helpText, textAreaFlag) {
 
     container.append(label, input, help_block);
     return container;
+}
+
+function returnButton(buttonType, buttonText, buttonListener) {
+    const button = document.createElement('div');
+    button.classList.add("btn", "btn-outline-" + buttonType);
+    button.textContent = buttonText;
+    button.addEventListener('click', () => {
+        buttonListener();
+    })
+    return button;
 }
