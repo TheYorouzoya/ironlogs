@@ -200,9 +200,53 @@ def workout(request):
     pass
 
 
+login_required
+def addWorkoutDay(request, workoutId):
+    if (request.method != 'POST'):
+        return JsonResponse({
+            "error": "POST request required"
+        }, status=405)
+    
+    try:
+        workout = Workout.objects.get(id=workoutId)
+    except Workout.DoesNotExist:
+        return JsonResponse({
+            "error": "Requested workout does not exist"
+        }, status=404)
+    
+    data = json.loads(request.body)
+    
+    try:
+        dayNum = int(data["day"])
+    except ValueError:
+        return JsonResponse({
+            "error": "Received day field is not a number"
+        }, status=400)
+
+    try:
+        day = Day.objects.get(day=dayNum)
+    except Day.DoesNotExist:
+        return JsonResponse({
+            "error": "Given day is outside the 0-6 range"
+        }, status=400)
+
+    workout.day.add(day)
+    workout.save()
+
+    return JsonResponse({
+        "message": f"Successfully added {workout.name} on {day.get_day_display()}"
+    }, status=201)
+
+
 @login_required
 def workoutExercises(request, workoutId):
-    workout = Workout.objects.get(id=workoutId)
+    try:
+        workout = Workout.objects.get(id=workoutId)
+    except Workout.DoesNotExist:
+        return JsonResponse({
+            "error": "Workout does not exist"
+        }, status=404)
+    
     exercises = Exercise.objects.filter(workout=workout)
     
     return JsonResponse({

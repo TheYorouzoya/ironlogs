@@ -70,7 +70,11 @@ class Workout(models.Model):
         verbose_name='Workour UUID'
     )
     name = models.CharField(max_length=128)
-    program = models.ManyToManyField('Program')
+    program = models.ForeignKey(
+        'Program',
+        null=True,
+        on_delete=models.SET_NULL
+    )
     trainee = models.ForeignKey(
         'User',
         on_delete=models.CASCADE,

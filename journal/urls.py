@@ -17,6 +17,7 @@ urlpatterns = [
     # Workouts
     path("workout/", views.workout, name="workout"),
     path("workout/<str:workoutId>/exercises", views.workoutExercises, name="workoutExercises"),
+    path("workout/<str:workoutId>/add_day", views.addWorkoutDay, name="addWorkoutDay"),
     
     # For a singular entry
     path("entry/", views.entry, name="entry"),

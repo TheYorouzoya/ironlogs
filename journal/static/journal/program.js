@@ -7,9 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function loadProgramView() {
-    const message_container = document.querySelector('#message');
-    // Clear any previous messages
-    message_container.innerHTML = "";
+    clearMessages();
     // display program view
     toggleView(PROGRAM_VIEW);
 
@@ -202,21 +200,29 @@ function pv_loadProgramEditForm(program) {
     const submitButton = returnButton("info", "Submit", function () {
         pv_submitEditProgramForm()
     });
-    submitButton.classList.add("align-self-end", "col-2");
+    
 
     const deleteButton = returnButton("danger", "Delete Program", function() {
         pv_deleteProgram(program.id);
     });
-    deleteButton.classList.add("align-self-end", "col-3");
+    
 
     const cancelButton = returnButton("info", "Cancel", function () {
         pv_loadProgram(program.id)
     });
-    cancelButton.classList.add("align-self-end", "col-2");
+    
 
     const btnCont = document.createElement('div');
-    btnCont.classList.add("row", "justify-content-end");
-    btnCont.append(submitButton, deleteButton, cancelButton);
+    btnCont.classList.add("row");
+
+    const delCont = document.createElement('div');
+    delCont.classList.add("col", "float-left");
+    delCont.append(deleteButton);
+
+    const rightbtns = document.createElement('div');
+    rightbtns.classList.add("col", "d-flex", "justify-content-end");
+    rightbtns.append(submitButton, cancelButton);
+    btnCont.append(delCont, rightbtns);
 
     programForm.append(nameInput, descriptionInput, btnCont);
     pvForms.append(programForm);
@@ -279,6 +285,8 @@ function pv_loadWorkouts(programId) {
         } else {
             const workouts = data["workouts"]
             const workoutContainer = document.createElement('div');
+            workoutContainer.setAttribute("id", "pvWorkoutContainer");
+            workoutContainer.dataset.programId = programId;
             
             const workoutHeader = document.createElement('div');
             workoutHeader.classList.add('row');
@@ -286,37 +294,39 @@ function pv_loadWorkouts(programId) {
             heading.classList.add("display-6","col-9");
             heading.textContent = "Workouts:";
 
-            const addWorkoutButton = returnButton("info", "Add Workout", function () {
-
-            });
-            addWorkoutButton.classList.add("col-3", "align-self-end");
-
-            workoutHeader.append(heading, addWorkoutButton);
+            workoutHeader.append(heading);
             workoutContainer.append(workoutHeader);
 
             const helptext= document.createElement('div');
-            helptext.textContent = "Each day in your program corresponds to a workout. "
+            helptext.innerHTML = "<p>Each day in your program corresponds to a workout. "
                 + "Each workout, then, has a bunch of exercises in it. "
                 + "Here's a table of all the workouts in this program. "
-                + "Click on a row to look at all the exercises within the workout.";
+                + "Click on a row to look at all the exercises within the workout.</p>";
             
             workoutContainer.append(helptext);
 
-            const table = returnWorkoutTable(workouts);
+            const table = pv_returnWorkoutTable(workouts);
             table.setAttribute("id", "pv-workout-table");
             workoutContainer.append(table);
 
             pvContent.append(workoutContainer);
+
+            const exerciseContainer = document.createElement('div');
+            exerciseContainer.setAttribute("id", "pvExerciseContainer");
+            pvContent.append(exerciseContainer);
+
         }
     });
 }
 
-function returnWorkoutTable(workouts) {
+function pv_returnWorkoutTable(workouts) {
     const table = document.createElement('table');
     const head = document.createElement('thead');
     const body = document.createElement('tbody');
 
     table.classList.add("table", "table-hover");
+    body.classList.add("accordion", "accordion-flush");
+    body.setAttribute("id", "workoutTableAccordion");
 
     var row = document.createElement('tr');
     var header = document.createElement('th');
@@ -327,12 +337,17 @@ function returnWorkoutTable(workouts) {
     
     header = document.createElement('th');
     header.setAttribute('scope', 'col');
-    header.textContent = "Workout";
+    header.classList.add("text-center");
+    header.textContent = "Workout"
 
     row.appendChild(header);
 
     head.appendChild(row);
     table.appendChild(head);
+
+    var rowEmptyClicked = function (event) {
+        pv_displayWorkoutForm(this, workouts, days);
+    }
 
     
     var days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -340,15 +355,19 @@ function returnWorkoutTable(workouts) {
     for (var i = 0; i < 7; i++) {
         row = document.createElement('tr');
         row.setAttribute("id", "row-" + i);
+        row.dataset.day = i;
 
         const day = document.createElement('td');
         day.textContent = days[i];
 
         const workout = document.createElement('td');
         workout.setAttribute("id", "row-workout-" + i);
-        workout.textContent = "----";
+        workout.classList.add("text-center");
+        workout.innerHTML = `<small><em>Add a workout</em></small>`;
 
         row.append(day, workout);
+
+        row.addEventListener('click', rowEmptyClicked);
         body.append(row);
     }
 
@@ -357,10 +376,145 @@ function returnWorkoutTable(workouts) {
             row = body.querySelector('#row-' + day["dayNum"]);
             row.dataset.workoutId = workout["id"];
             row.querySelector('#row-workout-' + day["dayNum"]).textContent = workout["name"];
+            row.removeEventListener('click', rowEmptyClicked);
+            row.addEventListener('click', function () {
+                pv_displayWorkoutExercises(this, days);
+            })
         })
     });
 
     table.append(body);
     return table;
 
+}
+
+
+function pv_displayWorkoutExercises(row, days) {
+    const day = row.dataset.day;
+    const workoutId = row.dataset.workoutId;
+    const exerciseContainer = document.querySelector('#pvExerciseContainer');
+    exerciseContainer.innerHTML = `
+        <div class="display-6">${row.querySelector('#row-workout-' + day).textContent} workout on ${days[day]}:</div>
+        <p>Below is a list of all the exercises in the workout:</p>`;
+    
+
+    fetch(`workout/${workoutId}/exercises`)
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            displayMessage(data.error, false);
+        } else {
+            const exercises = data["exercises"];
+            const listGroup = document.createElement('ol');
+            listGroup.classList.add("list-group", "list-group-numbered");
+
+            exercises.forEach(exercise => {
+                const item = document.createElement('li');
+                item.classList.add(
+                    "list-group-item", 
+                    "d-flex", 
+                    "justify-content-between", 
+                    "align-items-start"
+                );
+
+                item.innerHTML = `
+                    <div class="ms-2 me-auto">
+                    <div class="fw-bold">${exercise.name}</div>
+                    ${exercise.description}
+                    </div>
+                `;
+                listGroup.append(item);
+            })
+
+            exerciseContainer.append(listGroup);
+        }
+    })
+}
+
+
+function pv_displayWorkoutForm(row, workouts, days) {
+    const day = row.dataset.day;
+    const exerciseContainer = document.querySelector('#pvExerciseContainer');
+    exerciseContainer.innerHTML = `
+        <div class="display-6">Workout on ${days[day]}:</div>
+        <div><p>No workout on ${days[day]}. <br />You can either choose from an existing workout
+        or add a new workout below.</div>
+        `;
+
+    const main_container = document.createElement('div');
+
+    // a select field where the user can pick an existing workout
+    const sl_Container = document.createElement('div');
+
+    const sl_label = document.createElement('label');
+    sl_label.classList.add("form-label");
+    sl_label.setAttribute("for", "workoutSelectMenu");
+    sl_label.textContent = "Workout:";
+
+    const selectField = document.createElement('select');
+    selectField.classList.add("form-select");
+    selectField.setAttribute("aria-label", "Workout selection drop-down");
+    selectField.setAttribute("id", "workoutSelectMenu");
+
+    var row = document.createElement('option');
+    row.setAttribute("selected", "true");
+    row.textContent = "Select an existing workout";
+
+    selectField.append(row);
+
+    var counter = 0;
+    workouts.forEach(workout => {
+        row = document.createElement('option');
+        row.setAttribute("value", counter);
+        row.textContent = workout["name"];
+        row.dataset.workoutId = workout["id"];
+        row.dataset.day = day;
+
+        selectField.append(row);
+        counter++;
+    });
+
+    const submitWorkoutButton = returnButton("info", "Add Workout", function () {
+        pv_submitWorkoutSelectFieldForm();
+    });
+
+    sl_Container.append(sl_label, selectField, submitWorkoutButton);
+    main_container.append(sl_Container);
+    
+    // a form to add a new workout to the program on the selected day
+
+    exerciseContainer.append(main_container);
+}
+
+
+function pv_submitWorkoutSelectFieldForm() {
+    const selectField = document.querySelector('#workoutSelectMenu');
+    if (selectField.selectedIndex == 0) {
+        selectField.classList.add("is-invalid");
+        return;
+    }
+
+    const workout = selectField.options[selectField.selectedIndex];
+    const id = workout.dataset.workoutId;
+    const dayNum =  workout.dataset.day;
+
+    fetch(`workout/${id}/add_day`, {
+        method: 'POST',
+        headers: {
+            "X-CSRFToken": CSRF_TOKEN
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify({
+            day: dayNum
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            displayMessage(data.error, false);
+        } else {
+            displayMessage(data.message, true);
+            pv_loadProgram(document.querySelector('#pvWorkoutContainer').dataset.programId);
+        }
+    })
 }

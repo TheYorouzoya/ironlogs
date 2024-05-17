@@ -39,6 +39,8 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 
+
+
 function toggleView(viewIndex) {
     var viewValues = ["none", "none", "none", "none"];
     viewValues[viewIndex] = "block";
@@ -108,4 +110,10 @@ function returnButton(buttonType, buttonText, buttonListener) {
         buttonListener();
     })
     return button;
+}
+
+function clearMessages() {
+    const message_container = document.querySelector('#message');
+    // Clear any previous messages
+    message_container.innerHTML = "";
 }
