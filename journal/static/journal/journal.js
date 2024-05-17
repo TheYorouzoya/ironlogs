@@ -302,7 +302,6 @@ function submitEntries(data) {
             console.log(data.error);
         } else {
             loadEntriesView();
-            
         }
     })
 }

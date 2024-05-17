@@ -52,13 +52,13 @@ function toggleView(viewIndex) {
 }
 
 
-function displayMessage(message, successFlag) {
-    const message_container = document.querySelector('#message');
+function displayMessage(message, successFlag, containerId='#message') {
+    const message_container = document.querySelector(containerId);
     // Clear any previous messages
     message_container.innerHTML = "";
 
     const messageDiv = document.createElement('div');
-    messageDiv.classList.add("alert");
+    messageDiv.classList.add("alert", "alert-dismissible", "fade", "show");
     messageDiv.setAttribute("role", "alert");
 
     if (successFlag) {
@@ -68,6 +68,14 @@ function displayMessage(message, successFlag) {
     }
 
     messageDiv.textContent = message;
+
+    const closeBtn = document.createElement('button');
+    closeBtn.classList.add("btn-close");
+    closeBtn.setAttribute("type", "button");
+    closeBtn.setAttribute("data-bs-dismiss", "alert");
+    closeBtn.setAttribute("aria-label", "Close");
+    
+    messageDiv.append(closeBtn);
     message_container.append(messageDiv);
 }
 

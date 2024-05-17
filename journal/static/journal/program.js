@@ -1,7 +1,8 @@
-var pvHeader, pvButtons, pvForms, pvContent;
+var pvHeader, pvButtons, pvDescription, pvForms, pvContent;
 document.addEventListener('DOMContentLoaded', function() {
     pvHeader = document.querySelector('#program-view-header');
     pvButtons = document.querySelector('#program-view-buttons');
+    pvDescription = document.querySelector('#program-view-description');
     pvForms = document.querySelector('#program-view-form-container');
     pvContent = document.querySelector('#program-view-content');
 });
@@ -13,81 +14,16 @@ function loadProgramView() {
 
     emptyProgramView();
     pv_loadAllPrograms();
-    pvButtons.append(returnButton("info", "Add Program", function () {
-        pv_addProgramForm();
-    }))
 }
 
 function emptyProgramView() {
     pvHeader.innerHTML = "";
     pvButtons.innerHTML = "";
+    pvDescription.innerHTML = "";
     pvForms.innerHTML = "";
     pvContent.innerHTML = "";
 }
 
-function pv_addProgramForm() {
-    emptyProgramView();
-    pvHeader.textContent = "Add a Program";
-    const programForm = document.createElement('form');
-    
-    const nameInput = returnTextInputField(
-        "Program Name", 
-        "program-name", 
-        "Give your program a name (60 characters long)", 
-        false,
-        ""
-    );
-
-    const descriptionInput = returnTextInputField(
-        "Program Description", 
-        "program-description", 
-        "Add a brief description of your program (2000 characters long)", 
-        true, 
-        ""
-    );
-
-    const submitButton = returnButton("info", "Submit", function () {
-        pv_submitAddProgramForm()
-    });
-    submitButton.classList.add("align-self-end");
-
-    const cancelButton = returnButton("info", "Cancel", function () {
-        loadProgramView();
-    });
-    cancelButton.classList.add("align-self-end");
-
-    const btnCont = document.createElement('div');
-    btnCont.append(submitButton, cancelButton);
-
-    programForm.append(nameInput, descriptionInput, btnCont);
-    pvForms.append(programForm);
-}
-
-function pv_submitAddProgramForm() {
-    const program_name = pvForms.querySelector('#program-name').value;
-    const program_description = pvForms.querySelector('#program-description').value;
-
-    fetch(`program/`, {
-        method: 'POST',
-        headers: {
-            "X-CSRFToken": CSRF_TOKEN
-        },
-        credentials: 'same-origin',
-        body: JSON.stringify({
-            name: program_name,
-            description: program_description
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.error) {
-            displayMessage(data.error, false);
-        } else {
-            loadProgramView();
-            displayMessage(data.message, true);
-        }
-    })
-}
 
 function pv_loadAllPrograms() {
     fetch('program/all/')
@@ -96,6 +32,10 @@ function pv_loadAllPrograms() {
         if (data.error) {
             console.log(data.error);
         } else {
+            emptyProgramView();
+            pvButtons.append(returnButton("info", "Add Program", function () {
+                pv_addProgramForm();
+            }))
             pvHeader.textContent = "Your Programs";
             const program_container = document.createElement('div');
             program_container.classList.add("card", "program-card");
@@ -140,9 +80,6 @@ function pv_loadProgram(pId) {
         if (data.error) {
             displayMessage(data.error, false);
         } else {
-            const message_container = document.querySelector('#message');
-            // Clear any previous messages
-            message_container.innerHTML = "";
             emptyProgramView();
 
             const program = data["program"]
@@ -153,7 +90,7 @@ function pv_loadProgram(pId) {
             pDescription.classList.add("pvProgramDescription");
             pDescription.textContent = program.description;
 
-            pvContent.append(pDescription);
+            pvDescription.append(pDescription);
             const backButton = returnButton("info", "Back", function() {
                 loadProgramView();
             });
@@ -169,10 +106,96 @@ function pv_loadProgram(pId) {
             btnCont.append(editButton, backButton);
             pvButtons.append(btnCont);
 
+            const workoutContainer = document.createElement('div');
+            workoutContainer.setAttribute("id", "pvWorkoutContainer");
+            workoutContainer.dataset.programId = pId;
+
+            pvContent.append(workoutContainer);
+
+            const exerciseContainer = document.createElement('div');
+            exerciseContainer.setAttribute("id", "pvExerciseContainer");
+
+            const exContMessageContainer = document.createElement('div');
+            exContMessageContainer.setAttribute("id", "exerciseContainerMessage");
+
+            exerciseContainer.append(exContMessageContainer);
+            pvContent.append(exerciseContainer);
+
             pv_loadWorkouts(pId);
         }
     })
 }
+
+function pv_addProgramForm() {
+    emptyProgramView();
+    pvHeader.textContent = "Add a Program";
+    const programForm = document.createElement('form');
+    
+    const nameInput = returnTextInputField(
+        "Program Name", 
+        "program-name", 
+        "Give your program a name (60 characters long)", 
+        false,
+        ""
+    );
+
+    const descriptionInput = returnTextInputField(
+        "Program Description", 
+        "program-description", 
+        "Add a brief description of your program (2000 characters long)", 
+        true, 
+        ""
+    );
+
+    const submitButton = returnButton("info", "Submit", function () {
+        pv_submitAddProgramForm();
+    });
+    submitButton.classList.add("align-self-end");
+
+    const cancelButton = returnButton("info", "Cancel", function () {
+        loadProgramView();
+    });
+    cancelButton.classList.add("align-self-end");
+
+    const btnCont = document.createElement('div');
+    btnCont.append(submitButton, cancelButton);
+
+    programForm.append(nameInput, descriptionInput, btnCont);
+    pvForms.append(programForm);
+}
+
+
+function pv_submitAddProgramForm() {
+    const program_name = pvForms.querySelector('#program-name').value;
+    const program_description = pvForms.querySelector('#program-description').value;
+
+    if (program_name == "") {
+        pvForms.querySelector('#program-name').classList.add("is-invalid");
+        return;
+    }
+
+    fetch(`program/`, {
+        method: 'POST',
+        headers: {
+            "X-CSRFToken": CSRF_TOKEN
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify({
+            name: program_name,
+            description: program_description
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            displayMessage(data.error, false);
+        } else {
+            loadProgramView();
+            displayMessage(data.message, true);
+        }
+    })
+}
+
 
 function pv_loadProgramEditForm(program) {
     emptyProgramView();
@@ -277,17 +300,17 @@ function pv_deleteProgram(id) {
 }
 
 function pv_loadWorkouts(programId) {
-    fetch(`program/${programId}/workouts`)
+    return fetch(`program/${programId}/workouts`)
     .then(response => response.json())
     .then(data => {
         if (data.error) {
             displayMessage(data.error, false);
         } else {
-            const workouts = data["workouts"]
-            const workoutContainer = document.createElement('div');
-            workoutContainer.setAttribute("id", "pvWorkoutContainer");
-            workoutContainer.dataset.programId = programId;
             
+            const workouts = data["workouts"]
+            const workoutContainer = document.querySelector('#pvWorkoutContainer');
+            workoutContainer.innerHTML = "";
+
             const workoutHeader = document.createElement('div');
             workoutHeader.classList.add('row');
             const heading = document.createElement('div');
@@ -308,12 +331,6 @@ function pv_loadWorkouts(programId) {
             const table = pv_returnWorkoutTable(workouts);
             table.setAttribute("id", "pv-workout-table");
             workoutContainer.append(table);
-
-            pvContent.append(workoutContainer);
-
-            const exerciseContainer = document.createElement('div');
-            exerciseContainer.setAttribute("id", "pvExerciseContainer");
-            pvContent.append(exerciseContainer);
 
         }
     });
@@ -392,11 +409,21 @@ function pv_returnWorkoutTable(workouts) {
 function pv_displayWorkoutExercises(row, days) {
     const day = row.dataset.day;
     const workoutId = row.dataset.workoutId;
+    const workoutName = row.querySelector('#row-workout-' + day).textContent;
     const exerciseContainer = document.querySelector('#pvExerciseContainer');
     exerciseContainer.innerHTML = `
-        <div class="display-6">${row.querySelector('#row-workout-' + day).textContent} workout on ${days[day]}:</div>
+        <div id="exerciseContainerHeader" class="row d-flex">
+        <div class="display-6 col">${workoutName} workout on ${days[day]}:</div>
+        </div>
         <p>Below is a list of all the exercises in the workout:</p>`;
     
+    const editButton = returnButton(
+        "info",
+        "Edit",
+        function () { pv_displayEditWorkoutForm(row, days) }
+        );
+    editButton.classList.add("col-2", "justify-content-end");
+    document.querySelector('#exerciseContainerHeader').append(editButton);
 
     fetch(`workout/${workoutId}/exercises`)
     .then(response => response.json())
@@ -432,19 +459,72 @@ function pv_displayWorkoutExercises(row, days) {
 }
 
 
+function pv_displayEditWorkoutForm(row, days) {
+    const day = row.dataset.day;
+    const workoutId = row.dataset.workoutId;
+    const workoutName = row.querySelector('#row-workout-' + day).textContent;
+
+    const exerciseContainer = document.querySelector('#pvExerciseContainer');
+    exerciseContainer.innerHTML = `
+        <div id="exerciseContainerHeader" class="row d-flex">
+        <div class="display-6 col">Edit ${workoutName} workout on ${days[day]}:</div>
+        </div>`;
+
+    const form = document.createElement('form');
+    form.classList.add("form-control");
+    form.setAttribute("id", "editWorkoutForm");
+    form.dataset.workoutId = workoutId;
+
+    const nameField = returnTextInputField(
+        "Workout Name",
+        "workout-name",
+        "New workout name (60 characters long):",
+        false,
+        ""
+    )
+
+    const deleteButton = returnButton("danger", "Delete Workout", function () {
+        pv_deleteWorkout(workoutId);
+    })
+
+    const submitButton = returnButton("info", "Submit", function () {
+        pv_submitEditWorkoutForm();
+    })
+
+    const cancelButton = returnButton("info", "Cancel", function () {
+        pv_displayWorkoutExercises(row, days);
+    })
+
+    const btnCont = document.createElement('div');
+    btnCont.classList.add("row");
+
+    const delCont = document.createElement('div');
+    delCont.classList.add("col", "float-left");
+    delCont.append(deleteButton);
+
+    const rightbtns = document.createElement('div');
+    rightbtns.classList.add("col", "d-flex", "justify-content-end");
+    rightbtns.append(submitButton, cancelButton);
+    btnCont.append(delCont, rightbtns);
+
+    form.append(nameField, btnCont);
+    exerciseContainer.append(form);
+}
+
+
 function pv_displayWorkoutForm(row, workouts, days) {
     const day = row.dataset.day;
     const exerciseContainer = document.querySelector('#pvExerciseContainer');
     exerciseContainer.innerHTML = `
-        <div class="display-6">Workout on ${days[day]}:</div>
-        <div><p>No workout on ${days[day]}. <br />You can either choose from an existing workout
-        or add a new workout below.</div>
+        <div class="display-6">Add Workout on ${days[day]}:</div>
+        Choose from an existing workout:
         `;
 
     const main_container = document.createElement('div');
 
     // a select field where the user can pick an existing workout
-    const sl_Container = document.createElement('div');
+    const sl_Container = document.createElement('form');
+    sl_Container.classList.add("form-control");
 
     const sl_label = document.createElement('label');
     sl_label.classList.add("form-label");
@@ -483,7 +563,62 @@ function pv_displayWorkoutForm(row, workouts, days) {
     
     // a form to add a new workout to the program on the selected day
 
+    const workoutForm = document.createElement('form');
+    workoutForm.classList.add("form-control");
+
+    workoutForm.append(returnTextInputField(
+        "Workout Name:",
+        "workout-name",
+        "Give your workout a name (60 characters long)",
+        false,
+        ""
+    ))
+
+    workoutForm.append(returnButton(
+        "info", 
+        "Add New Workout",
+        function() {
+            pv_submitAddWorkoutForm(day);
+        }
+    ))
+
+    main_container.append("Or add a new workout:", workoutForm);
     exerciseContainer.append(main_container);
+}
+
+
+function pv_submitAddWorkoutForm(day) {
+    const nameField = document.querySelector('#workout-name');
+    const programId = document.querySelector('#pvWorkoutContainer').dataset.programId;
+    const workoutName = nameField.value;
+
+    if (workoutName == "") {
+        nameField.classList.add("is-invalid");
+        return;
+    }
+
+    fetch(`workout/`, {
+        method: 'POST',
+        headers: {
+            "X-CSRFToken": CSRF_TOKEN
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify({
+            name: workoutName,
+            program: programId,
+            day: day
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            displayMessage(data.error, false, '#exerciseContainerMessage');
+        } else {
+            pv_loadWorkouts(programId)
+            .then(() => displayMessage(data.message, true, '#exerciseContainerMessage'));
+            
+        }
+    })
 }
 
 
@@ -513,8 +648,8 @@ function pv_submitWorkoutSelectFieldForm() {
         if (data.error) {
             displayMessage(data.error, false);
         } else {
-            displayMessage(data.message, true);
-            pv_loadProgram(document.querySelector('#pvWorkoutContainer').dataset.programId);
+            pv_loadProgram(document.querySelector('#pvWorkoutContainer').dataset.programId).then(
+            displayMessage(data.message, true));
         }
     })
 }

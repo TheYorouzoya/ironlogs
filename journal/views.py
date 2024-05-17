@@ -197,7 +197,51 @@ def allPrograms(request):
 
 @login_required
 def workout(request):
-    pass
+    if (request.method == 'POST'):
+        data = json.loads(request.body)
+
+        programId = data["program"]
+        workoutName = data["name"]
+
+        if (not (workoutName.strip())):
+            return JsonResponse({
+                "error": "Workout name cannot be empty!"
+            }, status=400)
+
+        try:
+            dayNum = int(data["day"])
+        except ValueError:
+            return JsonResponse({
+                "error": "Received day field is not a number"
+            }, status=400)
+
+        try:
+            day = Day.objects.get(day=dayNum)
+        except Day.DoesNotExist:
+            return JsonResponse({
+                "error": "Given day is outside the 0-6 range"
+            }, status=400)
+
+        try:
+            program = Program.objects.get(id=programId, trainee=request.user)
+        except Program.DoesNotExist:
+            return JsonResponse({
+                "error": "Given program ID does not exist!"
+            }, status=404)
+        
+        workout = Workout.objects.create(
+            name=workoutName,
+            program=program,
+            trainee=request.user,
+        )
+
+        workout.day.add(day)
+        workout.save()
+
+        return JsonResponse({
+            "message": f"Successfully added {workoutName} on {day.get_day_display()}"
+        }, status=201)
+
 
 
 login_required
