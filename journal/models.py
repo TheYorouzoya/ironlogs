@@ -72,8 +72,7 @@ class Workout(models.Model):
     name = models.CharField(max_length=128)
     program = models.ForeignKey(
         'Program',
-        null=True,
-        on_delete=models.SET_NULL
+        on_delete=models.CASCADE
     )
     trainee = models.ForeignKey(
         'User',

@@ -52,31 +52,46 @@ function toggleView(viewIndex) {
 }
 
 
-function displayMessage(message, successFlag, containerId='#message') {
-    const message_container = document.querySelector(containerId);
+function displayMessage(message, successFlag) {
+    const message_container = document.querySelector('#message');
     // Clear any previous messages
     message_container.innerHTML = "";
 
     const messageDiv = document.createElement('div');
-    messageDiv.classList.add("alert", "alert-dismissible", "fade", "show");
+    messageDiv.classList.add(
+        "toast",
+        "align-items-center",
+        "border-0"
+    );
     messageDiv.setAttribute("role", "alert");
+    messageDiv.setAttribute("aria-live", "assertive");
+    messageDiv.setAttribute("aria-atomic", "true");
+    messageDiv.setAttribute("id", "liveToast");
+    messageDiv.setAttribute("autohide", "false");
 
     if (successFlag) {
-        messageDiv.classList.add("alert-success");
+        messageDiv.classList.add("text-bg-success");
     } else {
-        messageDiv.classList.add("alert-danger");
+        messageDiv.classList.add("text-bg-danger");
     }
 
-    messageDiv.textContent = message;
+    const c1 = document.createElement('div');
+    c1.classList.add("d-flex");
+    const c2 = document.createElement('div');
+    c2.classList.add("toast-body");
+    c2.textContent = message;
 
     const closeBtn = document.createElement('button');
-    closeBtn.classList.add("btn-close");
+    closeBtn.classList.add("btn-close", "btn-close-white", "me-2", "m-auto");
     closeBtn.setAttribute("type", "button");
-    closeBtn.setAttribute("data-bs-dismiss", "alert");
+    closeBtn.setAttribute("data-bs-dismiss", "toast");
     closeBtn.setAttribute("aria-label", "Close");
     
-    messageDiv.append(closeBtn);
+    c1.append(c2, closeBtn);
+    messageDiv.append(c1);
     message_container.append(messageDiv);
+
+    bootstrap.Toast.getOrCreateInstance(messageDiv).show();
 }
 
 function returnTextInputField(labelText, fieldId, helpText, textAreaFlag, preFillValue) {

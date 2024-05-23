@@ -119,7 +119,6 @@ def program(request):
     
     elif request.method == "PUT":
         data = json.loads(request.body)
-        print(data)
         id = data["id"]
         name = data["name"]
         description = data["description"]
@@ -146,7 +145,7 @@ def program(request):
         except Program.DoesNotExist:
             return JsonResponse({
                 "error": "Program does not exist!"
-            })
+            }, status=404)
         
         
         if (request.user.current_program == program):
@@ -176,7 +175,7 @@ def programWorkouts(request, programId):
         except Program.DoesNotExist:
             return JsonResponse({
                 "error": "No such program with the given ID"
-            })
+            }, status=404)
     
     workouts = Workout.objects.filter(trainee=request.user, program=program)
 
@@ -241,10 +240,52 @@ def workout(request):
         return JsonResponse({
             "message": f"Successfully added {workoutName} on {day.get_day_display()}"
         }, status=201)
+    
+
+    elif request.method == 'PUT':
+        data = json.loads(request.body)
+        id = data["id"]
+        name = data["name"]
+
+        if (not (name.strip())):
+            return JsonResponse({
+                "error": "New Workout name cannot be empty!"
+            }, status=400)
+
+        try:
+            workout = Workout.objects.get(id=id, trainee=request.user)
+        except Program.DoesNotExist:
+            return JsonResponse({
+                "error": "Workout does not exist!"
+            }, status=404)
+        
+        workout.name = name
+        workout.save()
+
+        return JsonResponse({
+            "message": "Successfully updated workout name!"
+        }, status=200)
+    
+
+    elif request.method == 'DELETE':
+        id = request.GET.get("id")
+
+        try:
+            workout = Workout.objects.get(id=id, trainee=request.user)
+        except Workout.DoesNotExist:
+            return JsonResponse( {
+                "error": "Requested workout does not exist!"
+            }, status=404)
+        
+        workout.delete()
+
+        return JsonResponse({
+            "message": "Workout deleted successfully!"
+        }, status=200)        
 
 
 
-login_required
+@login_required
 def addWorkoutDay(request, workoutId):
     if (request.method != 'POST'):
         return JsonResponse({
