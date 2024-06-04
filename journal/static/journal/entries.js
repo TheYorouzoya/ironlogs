@@ -6,7 +6,7 @@ function loadEntriesView() {
     loadCalendar(d);
 
     // fetch this week's entries
-    fetch(`entries/`)
+    fetch(`entries/range/`)
         .then(response => response.json())
         .then(data => {
             if (data.error) {
@@ -109,7 +109,7 @@ function submitEntriesForm() {
     const endDate = document.querySelector('#entriesEndDate').value;
 
     // Fetch the entries
-    fetch(`entries/?startDate=${startDate}&endDate=${endDate}`)
+    fetch(`entries/range/?startDate=${startDate}&endDate=${endDate}`)
         .then(response => response.json())
         .then(data => {
             if (data.error) {
@@ -237,7 +237,7 @@ function loadCalendar(anchorDate) {
 
 // Populates the entries div with the entries on a given date ('YYYY-MM-DD')
 function loadEntryOnDate(day) {
-    fetch(`entries/?startDate=${day}&endDate=${day}`)
+    fetch(`entries/range/?startDate=${day}&endDate=${day}`)
         .then(response => response.json())
         .then(data => {
             if (data.error) {

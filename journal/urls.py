@@ -17,14 +17,21 @@ urlpatterns = [
     # Workouts
     path("workout/", views.workout, name="workout"),
     path("workout/<str:workoutId>/exercises", views.workoutExercises, name="workoutExercises"),
-    path("workout/<str:workoutId>/add_day", views.addWorkoutDay, name="addWorkoutDay"),
+    path("workout/<str:workoutId>/day", views.workoutDay, name="workoutDay"),
     
+    # Bodyparts
+    path("bodypart/all", views.allBodyparts, name="allBodyparts"),
+
     # For a singular entry
     path("entry/", views.entry, name="entry"),
     path("entry/all/<str:exerciseId>", views.exerciseEntries, name="exerciseEntries"),
 
     # For bulk handling of entries
-    path("entries/", views.entries_api, name="entriesAPI"),
+    path("entries/range/", views.entriesInRange, name="entriesInRange"),
     path("entries/calendar/", views.entries_calendar, name="entriesCalendar"),
     path("entries/add", views.addEntries, name="entries"),
+
+    # For bulk handling of exercises
+    path("exercise/", views.exercise, name="exercise"),
+    path("exercises/add/", views.addExercises, name="addExercises")
 ]

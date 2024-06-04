@@ -78,10 +78,14 @@ def register(request):
         return render(request, "journal/register.html")
 
 
-# API Routes
+
+#==============================================================================#
+#                               PROGRAM ROUTES
+#==============================================================================#
 
 @login_required
 def program(request):
+    # to create a new program object
     if request.method == "POST":
         data = json.loads(request.body)
         programName = data["name"]
@@ -104,6 +108,7 @@ def program(request):
             "programId": program.id
         }, status=201)
     
+    # To get the program's details
     elif request.method == "GET":
         id = request.GET.get("id")
         try:
@@ -117,6 +122,7 @@ def program(request):
             "program": program.serialize()
         }, status=200)
     
+    # to edit a program's name and description
     elif request.method == "PUT":
         data = json.loads(request.body)
         id = data["id"]
@@ -138,6 +144,7 @@ def program(request):
             "message": "Successfully updated program details"
         }, status=200)
     
+    # to delete a program object
     elif request.method == "DELETE":
         id = request.GET.get("id")
         try:
@@ -159,7 +166,7 @@ def program(request):
         }, status=200)
 
 
-
+# returns the program and its workouts for a given program ID
 @login_required
 def programWorkouts(request, programId):
     if (programId == 'current'):    
@@ -185,6 +192,7 @@ def programWorkouts(request, programId):
         }, safe=False)
 
 
+# returns a list of all of the user's programs
 @login_required
 def allPrograms(request):
     programs = Program.objects.filter(trainee=request.user)
@@ -194,8 +202,13 @@ def allPrograms(request):
     }, safe=False)
 
 
+#==============================================================================#
+#                              WORKOUT ROUTES
+#==============================================================================#
+
 @login_required
 def workout(request):
+    # to create a new workout object
     if (request.method == 'POST'):
         data = json.loads(request.body)
 
@@ -241,7 +254,7 @@ def workout(request):
             "message": f"Successfully added {workoutName} on {day.get_day_display()}"
         }, status=201)
     
-
+    # to edit a workout's name
     elif request.method == 'PUT':
         data = json.loads(request.body)
         id = data["id"]
@@ -266,7 +279,7 @@ def workout(request):
             "message": "Successfully updated workout name!"
         }, status=200)
     
-
+    # to delete a workout object
     elif request.method == 'DELETE':
         id = request.GET.get("id")
 
@@ -281,15 +294,19 @@ def workout(request):
 
         return JsonResponse({
             "message": "Workout deleted successfully!"
-        }, status=200)        
+        }, status=200) 
 
 
-
+# allows the user to add or remove a day from a workout
 @login_required
-def addWorkoutDay(request, workoutId):
-    if (request.method != 'POST'):
+def workoutDay(request, workoutId):
+    if (request.method == 'POST'):
+        deleteFlag = False
+    elif (request.method == 'DELETE'):
+        deleteFlag = True
+    else:    
         return JsonResponse({
-            "error": "POST request required"
+            "error": "POST or DELETE request required"
         }, status=405)
     
     try:
@@ -315,18 +332,25 @@ def addWorkoutDay(request, workoutId):
             "error": "Given day is outside the 0-6 range"
         }, status=400)
 
-    workout.day.add(day)
+    if (deleteFlag):
+        workout.day.remove(day)
+        message = f"Successfully removed {workout.name} on {day.get_day_display()}"
+    else:
+        workout.day.add(day)
+        message = f"Successfully added {workout.name} on {day.get_day_display()}"
+
     workout.save()
 
     return JsonResponse({
-        "message": f"Successfully added {workout.name} on {day.get_day_display()}"
+        "message": message 
     }, status=201)
 
 
+# returns a workout and all of its exercises
 @login_required
 def workoutExercises(request, workoutId):
     try:
-        workout = Workout.objects.get(id=workoutId)
+        workout = Workout.objects.get(id=workoutId, trainee=request.user)
     except Workout.DoesNotExist:
         return JsonResponse({
             "error": "Workout does not exist"
@@ -340,15 +364,30 @@ def workoutExercises(request, workoutId):
         }, safe=False)
 
 
+#==============================================================================#
+#                             BODYPART ROUTE
+#==============================================================================#
+
+# returns all the available bodyparts
 @login_required
-def fetchWorkouts(request, programId):
-    pass
+def allBodyparts(request):
+    bodyparts = BodyPart.objects.all()
+    payload = [part.serialize() for part in bodyparts]
+
+    return JsonResponse({
+        "bodyparts": payload
+    }, status=200)
         
+
+#==============================================================================#
+#                              ENTRY ROUTES
+#==============================================================================#
 
 @login_required
 def entry(request):
     pass
 
+# allows the user to add entries in bulk. Usually called from the journal entry view
 @login_required
 def addEntries(request):
     # Adding entries must be done via POST
@@ -367,7 +406,6 @@ def addEntries(request):
 
         try:
             exercise = Exercise.objects.get(id=exerciseId)
-            
         except Exercise.DoesNotExist:
             return JsonResponse(
                 {"error": "Exercise with id" + exerciseId + "does not exist"},
@@ -384,7 +422,7 @@ def addEntries(request):
 
     return JsonResponse({"message": "Entries added successfully"}, status=201)
 
-
+# returns all the dates which have a journal entry for a given month
 @login_required
 def entries_calendar(request):
     try:
@@ -408,9 +446,10 @@ def entries_calendar(request):
     }, status=200)
 
 
+# returns all journal entries within a given start-end date range. If no range is
+# provided, it defaults to the current week starting at monday.
 @login_required
-def entries_api(request):
-
+def entriesInRange(request):
     try:
         end_date = returnDate(request.GET.get("endDate"), datetime.date.today())
         start_date = returnDate(request.GET.get("startDate"), end_date - datetime.timedelta(days = end_date.weekday()))
@@ -424,6 +463,7 @@ def entries_api(request):
         timestamp__range=((start_date, end_date))
         ).order_by("-timestamp")
     
+    # sort entries according to timestamp
     iter = itertools.groupby(entries, lambda entry : entry.timestamp)
 
     payload = [{
@@ -451,9 +491,50 @@ def returnDate(dateJson, default):
     return default
 
 
+
+#==============================================================================#
+#                              EXERCISE ROUTES
+#==============================================================================#
+
+@login_required
+def exercise(request):
+    # to delete an exercise object
+    if request.method == 'DELETE':
+        data = json.loads(request.body)
+        exerciseId = data["exerciseId"]
+        workoutId = data["workoutId"]
+
+        try:
+            exercise = Exercise.objects.get(id=exerciseId, trainee=request.user)
+        except Exercise.DoesNotExist:
+            return JsonResponse({
+                "error": "Exercise with given ID doesn not exists!"
+            }, status=404)
+        
+        try:
+            workout = Workout.objects.get(id=workoutId, trainee=request.user)
+        except Workout.DoesNotExist:
+            return JsonResponse({
+                "error": "Workout with given ID does not exist!"
+            }, status=404)
+        
+        exercise.workout.remove(workout)
+
+        return JsonResponse({
+            "message": f"Successfully removed {exercise.name} from {workout.name} workout!"
+        }, status=201)
+
+
+# returns all the journal entries for a given exercise
 @login_required
 def exerciseEntries(request, exerciseId):
-    exercise = Exercise.objects.get(id=exerciseId)
+    try:
+        exercise = Exercise.objects.get(id=exerciseId)
+    except Exercise.DoesNotExist:
+        return JsonResponse({
+            "error": "Exercise with ID does not exist!"
+        }, status=404)
+    
     entries = Entry.objects.filter(trainee=request.user, exercise=exercise).order_by("-timestamp")
 
     return JsonResponse({
@@ -462,5 +543,51 @@ def exerciseEntries(request, exerciseId):
     }, safe=False)
 
 
-
+# allows the user to add exercises in bulk
+@login_required
+def addExercises(request):
+    if (request.method != 'POST'):
+        return JsonResponse({
+            "error": "Post request required!"
+        }, status=400)
     
+    data = json.loads(request.body)
+
+    try:
+        workout = Workout.objects.get(id=data["workoutId"], trainee=request.user)
+    except Workout.DoesNotExist:
+        return JsonResponse({
+            "error": "Workout with given ID does not exist!"
+        }, status=404)
+    
+    exercises = data["exercises"]
+    exAccumulate = []
+
+    for exercise in exercises:
+        name = exercise["name"]
+        description = exercise["description"]
+        newExercise = Exercise.objects.create(
+            trainee=request.user,
+            name=name, 
+            description=description
+            )
+        newExercise.workout.add(workout)
+        for bodypart in exercise["bodyparts"]:
+            try:
+                bp = BodyPart.objects.get(id=bodypart)
+            except BodyPart.DoesNotExist:
+                return JsonResponse({
+                    "error": f"Could not add {name}. Bodypart does not exist!"
+                }, status=404)
+            
+            newExercise.body_part.add(bp)
+        
+        exAccumulate.append(newExercise)
+    
+    # only save when all exercises pass the check, no partial updates
+    for exercise in exAccumulate:
+        exercise.save()
+
+    return JsonResponse({
+        "message": "Successfully added all exercise(s)."
+    }, status=201)

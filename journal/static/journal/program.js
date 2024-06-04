@@ -374,6 +374,9 @@ function pv_loadWorkouts(programId) {
             const workoutContainer = document.querySelector('#pvWorkoutContainer');
             workoutContainer.innerHTML = "";
 
+            const exerciseContainer = document.querySelector('#pvExerciseContainer');
+            exerciseContainer.innerHTML = "";
+
             // create header and append
             const workoutHeader = document.createElement('div');
             workoutHeader.classList.add('row');
@@ -470,8 +473,17 @@ function pv_returnWorkoutTable(workouts) {
         workout["days"].forEach(day => {    // a workout can be on multiple days
             row = body.querySelector('#row-' + day["dayNum"]);
             row.dataset.workoutId = workout["id"];
-            row.querySelector('#row-workout-' + day["dayNum"]).textContent = workout["name"];
-            
+            const column = row.querySelector('#row-workout-' + day["dayNum"]);
+            column.textContent = workout["name"];
+
+            const removeButton = document.createElement('span');
+            removeButton.classList.add("badge", "btn", "btn-outline-info", "btn-sm", "rounded-pill");
+            removeButton.textContent = "Remove";
+            removeButton.addEventListener('click', function () {
+                pv_removeWorkoutFromTable(this);
+            });
+            column.append(removeButton);
+
             // remove the empty row listener
             row.removeEventListener('click', rowEmptyClicked);
 
@@ -488,6 +500,33 @@ function pv_returnWorkoutTable(workouts) {
 }
 
 
+function pv_removeWorkoutFromTable(button) {
+    const row = button.parentNode.parentNode;
+    const workoutId = row.dataset.workoutId;
+    const dayNum = row.dataset.day;
+    
+    fetch(`workout/${workoutId}/day`, {
+        method: 'DELETE',
+        headers: {
+            "X-CSRFToken": CSRF_TOKEN
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify({
+            day: dayNum
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            displayMessage(data.error, false);
+        } else {
+            pv_loadWorkouts(document.querySelector('#pvWorkoutContainer').dataset.programId);
+            displayMessage(data.message, true);
+        }
+    })
+}
+
+
 // Display all the exercises in a workout as a list-group. Erases any existing
 // elements inside the "#pvExerciseContainer".
 // The parameter "row" is passed by the eventListener while the "days" argument
@@ -496,10 +535,11 @@ function pv_displayWorkoutExercises(row, days) {
     // extract needed data from the passed row
     const day = row.dataset.day;
     const workoutId = row.dataset.workoutId;
-    const workoutName = row.querySelector('#row-workout-' + day).textContent;
+    const workoutName = row.querySelector('#row-workout-' + day).childNodes[0].textContent;
 
     // update container to wipe any previous entries
     const exerciseContainer = document.querySelector('#pvExerciseContainer');
+    exerciseContainer.dataset.workoutId = workoutId;
     exerciseContainer.innerHTML = `
         <div id="exerciseContainerHeader" class="row d-flex">
         <div class="display-6 col">${workoutName} workout on ${days[day]}:</div>
@@ -515,6 +555,8 @@ function pv_displayWorkoutExercises(row, days) {
     editButton.classList.add("col-2", "justify-content-end");
     document.querySelector('#exerciseContainerHeader').append(editButton);
 
+    exerciseContainer.append(pv_returnAddExerciseForm(row, days));
+
     // Fetch all the exercises from the server
     fetch(`workout/${workoutId}/exercises`)
     .then(response => response.json())
@@ -527,6 +569,7 @@ function pv_displayWorkoutExercises(row, days) {
             // Initialize list group
             const listGroup = document.createElement('ol');
             listGroup.classList.add("list-group", "list-group-numbered");
+            listGroup.setAttribute("id", "pvExerciseList");
 
             // Add exercise entries to list
             exercises.forEach(exercise => {
@@ -544,6 +587,14 @@ function pv_displayWorkoutExercises(row, days) {
                     ${exercise.description}
                     </div>
                 `;
+                item.dataset.exerciseId = exercise["id"];
+                const editButton = document.createElement('span');
+                editButton.classList.add("badge", "btn-sm", "btn", "btn-outline-info", "rounded-pill");
+                editButton.textContent = "Remove";
+                editButton.addEventListener('click', function () {
+                    pv_removeExerciseFromWorkout(this);
+                });
+                item.append(editButton);
                 listGroup.append(item);
             })
 
@@ -569,7 +620,7 @@ function pv_displayEditWorkoutForm(row, days) {
     // extract data from the currently active workout's row
     const day = row.dataset.day;
     const workoutId = row.dataset.workoutId;
-    const workoutName = row.querySelector('#row-workout-' + day).textContent;
+    const workoutName = row.querySelector('#row-workout-' + day).childNodes[0].textContent;
 
     // empty the exercise container and append a header
     const exerciseContainer = document.querySelector('#pvExerciseContainer');
@@ -823,7 +874,7 @@ function pv_submitWorkoutSelectFieldForm() {
     const dayNum =  workout.dataset.day;
 
     // Attemp to submit data
-    fetch(`workout/${id}/add_day`, {
+    fetch(`workout/${id}/day`, {
         method: 'POST',
         headers: {
             "X-CSRFToken": CSRF_TOKEN
@@ -839,6 +890,185 @@ function pv_submitWorkoutSelectFieldForm() {
             displayMessage(data.error, false);
         } else {    // If successfull, reload updated program data
             pv_loadProgram(document.querySelector('#pvWorkoutContainer').dataset.programId);
+            displayMessage(data.message, true);
+        }
+    })
+}
+
+
+function pv_returnAddExerciseForm(row, days) {
+    const container = document.createElement('div');
+    container.setAttribute("id", "pvAddExerciseFormContainer");
+
+    const exerciseForms = document.createElement('div');
+    exerciseForms.classList.add("row");
+    exerciseForms.setAttribute("id", "pvExerciseForms");
+
+    var bodypartList;
+
+    fetch(`bodypart/all`)
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            displayMessage(data.error, false);
+        }
+        bodypartList = data["bodyparts"];
+    });
+
+    const submitButton = returnButton("info", "Submit", function () {
+        pv_submitAddExerciseForm(row, days);
+    });
+    submitButton.style.display = "none";
+
+    const cancelButton = returnButton("info", "Cancel", function () {
+        exerciseForms.innerHTML = "";
+        submitButton.style.display = "none";
+        cancelButton.style.display = "none";
+    })
+    cancelButton.style.display = "none";
+
+    const addButton = returnButton("info", "Add an Exercise", function () {
+        const formContainer = document.createElement('form');
+        formContainer.classList.add("exercise-form", "form-control");
+        const exName = returnTextInputField(
+            "Exercise Name",
+            "exercise-name",
+            "Give your exercise a suitable name (upto 200 character long)",
+            false,
+            ""
+        )
+        
+        const bodypartSelectField = pv_returnBodypartChecklist(bodypartList);
+
+        const exDescription = returnTextInputField(
+            "Exercise Description",
+            "exercise-description",
+            "Give a suitable description for the exercise (upto 2000 characters long)",
+            true,
+            ""
+        )
+        formContainer.append(exName, bodypartSelectField, exDescription);
+        exerciseForms.prepend(formContainer);
+        submitButton.style.display = "inline-block";
+        cancelButton.style.display = "inline-block";
+
+    });
+
+    container.append(addButton, exerciseForms, submitButton, cancelButton);
+    return container;
+}
+
+function pv_returnBodypartChecklist(bodypartList) {
+    const container = document.createElement('div');
+    container.setAttribute("id", "pvBodypartChecklist");
+    container.innerHTML = "<p>Pick bodypart(s):</p>";
+
+    bodypartList.forEach(bodypart => {
+        const wrapper = document.createElement('div');
+        wrapper.classList.add("form-check", "form-check-inline");
+
+        const inBox = document.createElement('input');
+        inBox.classList.add("form-check-input");
+        inBox.setAttribute("type", "checkbox");
+        inBox.setAttribute("id", bodypart["id"]);
+        inBox.setAttribute("value", bodypart["name"]);
+
+        const label = document.createElement('label');
+        label.classList.add("form-check-label");
+        label.setAttribute("for", bodypart["id"]);
+        label.textContent = bodypart["name"];
+        wrapper.append(inBox, label);
+
+        container.append(wrapper);
+    })
+
+    return container;
+}
+
+
+function pv_submitAddExerciseForm(row, days) {
+    const container = document.querySelector('#pvExerciseForms');
+    const forms = container.querySelectorAll('.exercise-form');
+    const workoutId = document.querySelector('#pvExerciseContainer').dataset.workoutId;
+
+    var exercises = [];
+
+    forms.forEach(form => {
+        var exercise = new Object();
+        const name = form.querySelector('#exercise-name').value;
+        if (name == '') {
+            form.querySelector('#exercise-name').classList.add('is-invalid');
+            displayMessage("Exercise name cannot be empty!", false);
+            return;
+        }
+        exercise.name = name;
+
+        const description = form.querySelector('#exercise-description').value;
+        exercise.description = description;
+
+        var checked = false;
+        var bodyparts = [];
+        const checklist = form.querySelectorAll('.form-check-input');
+        checklist.forEach(item => {
+            if (item.checked) {
+                checked = true;
+                bodyparts.push(item.getAttribute('id'));
+            }
+        })
+        if (!checked) {
+            form.classList.add('is-invalid');
+            displayMessage("You must select at least one bodypart!", false);
+            return;
+        }
+        exercise.bodyparts = bodyparts;
+        exercises.push(exercise);
+    });
+
+    fetch(`exercises/add/`, {
+        method: 'POST',
+        headers: {
+            "X-CSRFToken": CSRF_TOKEN
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify({
+            workoutId: workoutId,
+            exercises: exercises
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            displayMessage(data.error, false);
+        } else {
+            pv_displayWorkoutExercises(row, days);
+            displayMessage(data.message, true);
+        }
+    })
+
+}
+
+function pv_removeExerciseFromWorkout(target) {
+    const parent = target.parentNode;
+    const exerciseId = parent.dataset.exerciseId;
+    const workoutId = document.querySelector('#pvExerciseContainer').dataset.workoutId;
+    
+    fetch(`exercise/`, {
+        method: 'DELETE',
+        headers: {
+            "X-CSRFToken": CSRF_TOKEN
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify({
+            workoutId: workoutId,
+            exerciseId: exerciseId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            displayMessage(data.error, false);
+        } else {
+            parent.parentNode.removeChild(parent);
             displayMessage(data.message, true);
         }
     })
