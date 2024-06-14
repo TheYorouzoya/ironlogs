@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from django.db import IntegrityError
 from django.shortcuts import HttpResponseRedirect, render
 from django.urls import reverse
@@ -498,8 +499,26 @@ def returnDate(dateJson, default):
 
 @login_required
 def exercise(request):
+    if request.method == 'GET':
+        id = request.GET.get("id")
+        if (not (id.strip())):
+            return JsonResponse({
+                "error": "Given exercise ID is empty!"
+            }, status=400)
+        
+        try:
+            exercise = Exercise.objects.get(id=id, trainee=request.user)
+        except Exercise.DoesNotExist:
+            return JsonResponse({
+                "error": "Exercise with given ID does not exist!"
+            }, status=404)
+        
+        return JsonResponse({
+            "exercise": exercise.serialize()
+        }, status=200)
+
     # to delete an exercise object
-    if request.method == 'DELETE':
+    elif request.method == 'DELETE':
         data = json.loads(request.body)
         exerciseId = data["exerciseId"]
         workoutId = data["workoutId"]
@@ -523,6 +542,124 @@ def exercise(request):
         return JsonResponse({
             "message": f"Successfully removed {exercise.name} from {workout.name} workout!"
         }, status=201)
+
+
+# returns all the exercises for the current user
+# @login_required
+# def allExercises(request):
+#     pageNum = request.GET.get("pageNum")
+
+#     try:
+#         pageNum = int(pageNum)
+#     except ValueError:
+#         return JsonResponse({
+#             "error": "Page number must be a number!"
+#         }, status=400)
+    
+#     exercises = Exercise.objects.filter(trainee=request.user).order_by('name')
+#     ITEMS_PER_PAGE = 10
+#     paginator = Paginator(exercises, ITEMS_PER_PAGE)
+    
+#     try:
+#         page = paginator.page(pageNum)
+#     except django.core.paginator.EmptyPage:
+#         return JsonResponse({
+#             "error": "Requested page number is either empty or invalid"
+#         }, status=400)
+
+#     payload = [exercise.table_serialize() for exercise in page.object_list]
+
+#     return JsonResponse({
+#         "exercises": payload,
+#         "hasNext": page.has_next(),
+#         "hasPrevious": page.has_previous()
+#     }, status=200)
+
+
+@login_required
+def searchExercises(request):
+    if (request.method == 'GET'):
+        searchQuery = request.GET.get("q")
+        searchQuery = searchQuery.strip()
+        qSet = Exercise.objects.filter(trainee=request.user)
+
+        if not searchQuery:
+            return JsonResponse({
+                "results": []
+            }, status=200)
+        
+        qSet = qSet.filter(name__icontains=searchQuery)
+
+        return JsonResponse({
+            "results": [exercise.serialize() for exercise in qSet.order_by('name')[:7]]
+        }, status=200)
+
+    
+@login_required
+def filterExercises(request):
+    if request.method != 'GET':
+        return JsonResponse({
+            "error": "GET request only!"
+        }, status=400)
+
+    exercises = Exercise.objects.filter(trainee=request.user).order_by('name')
+    
+    partID = request.GET.get("bodypart")
+    if partID:
+        try:
+            bodypart = BodyPart.objects.get(id=partID)
+        except BodyPart.DoesNotExist:
+            return JsonResponse({
+                "error": "Body part with given ID does not exist!"
+            }, status=404)
+        exercises = exercises.filter(body_part=bodypart)
+
+    workoutID = request.GET.get("workout")
+    if workoutID:
+        try:
+            workout = Workout.objects.get(id=workoutID)
+        except Workout.DoesNotExist:
+            return JsonResponse({
+                "error": "Workout with given ID does not exist!"
+            }, status=404)
+        exercises = exercises.filter(workout=workout)
+
+    programID = request.GET.get("program")
+    if programID:
+        try:
+            program= Program.objects.get(id=programID)
+        except Program.DoesNotExist:
+            return JsonResponse({
+                "error": "Program with given ID does not exist!"
+            }, status=404)
+        exercises = exercises.filter(workout__program=program)
+    
+    pageNum = request.GET.get("pageNum")
+    try:
+        pageNum = int(pageNum)
+    except ValueError:
+        return JsonResponse({
+            "error": "Page number must be an integer!"
+        }, status=400)
+    
+    ITEMS_PER_PAGE = 10
+    paginator = Paginator(exercises, ITEMS_PER_PAGE)
+    
+    try:
+        page = paginator.page(pageNum)
+    except django.core.paginator.EmptyPage:
+        return JsonResponse({
+            "error": "Requested page number is either empty or invalid"
+        }, status=400)
+
+    payload = [exercise.table_serialize() for exercise in page.object_list]
+
+    return JsonResponse({
+        "exercises": payload,
+        "hasNext": page.has_next(),
+        "hasPrevious": page.has_previous()
+    }, status=200)
+
 
 
 # returns all the journal entries for a given exercise
@@ -565,6 +702,11 @@ def addExercises(request):
 
     for exercise in exercises:
         name = exercise["name"]
+        if (not (name.strip())):
+            return JsonResponse({
+                "error": "Exercise name cannot be empty!"
+            }, status=400)
+        
         description = exercise["description"]
         newExercise = Exercise.objects.create(
             trainee=request.user,
@@ -589,5 +731,5 @@ def addExercises(request):
         exercise.save()
 
     return JsonResponse({
-        "message": "Successfully added all exercise(s)."
+        "message": "Successfully added exercise(s)."
     }, status=201)

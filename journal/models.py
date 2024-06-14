@@ -106,7 +106,7 @@ class Exercise(models.Model):
         on_delete=models.CASCADE
     )
     workout = models.ManyToManyField('Workout')
-    name = models.CharField(max_length=200)
+    name = models.CharField(max_length=200, db_index=True)
     body_part = models.ManyToManyField('BodyPart')
     sub_body_part = models.CharField(max_length=200, null=True)
     description = models.CharField(
@@ -124,6 +124,30 @@ class Exercise(models.Model):
             "bodypart": [part.serialize() for part in self.body_part.all()],
             "subBodyPart": self.sub_body_part,
             "description": self.description
+        }
+    
+    def table_serialize(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "workouts": [
+                {
+                    "id": workout.id,
+                    "name": workout.name
+                } for workout in self.workout.all()
+            ],
+            "programs": [
+                {
+                    "id": workout.program.id,
+                    "name": workout.program.name
+                } for workout in self.workout.all()
+            ],
+            "bodyparts": [
+                {
+                    "id": bodypart.id,
+                    "name": bodypart.name
+                } for bodypart in self.body_part.all()
+            ]
         }
 
     def __str__(self):

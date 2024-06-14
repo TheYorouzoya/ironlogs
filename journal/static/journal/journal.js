@@ -83,7 +83,6 @@ function loadProgram(programId, workoutContainer, exerciseContainer, formFlag) {
 
 function loadWorkout(workoutId, containerId, formFlag) {
     fetch(`workout/${workoutId}/exercises`)
-
     .then(response => response.json())
     .then(data => {
         if(data.error) {

@@ -33,5 +33,7 @@ urlpatterns = [
 
     # For bulk handling of exercises
     path("exercise/", views.exercise, name="exercise"),
-    path("exercises/add/", views.addExercises, name="addExercises")
+    path("exercises/add/", views.addExercises, name="addExercises"),
+    path("exercises/search/", views.searchExercises, name="suggestExercises"),
+    path("exercises/filter/", views.filterExercises, name="filterExercises")
 ]
