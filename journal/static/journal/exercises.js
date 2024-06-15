@@ -234,10 +234,12 @@ function ev_loadExercise(exerciseId) {
             subhead1.append(heading, bodyparts);
 
             const subhead2 = document.createElement('div');
+            const wrapper = document.createElement('div');
             const backButton = returnButton("info", "Back", function () {
                 ev_loadAllExercises();
             });
-            subhead2.append(backButton);
+            wrapper.append(backButton);
+            subhead2.append(wrapper);
             subhead2.classList.add("d-flex", "justify-content-end", "col");
 
             header.append(subhead1, subhead2);
