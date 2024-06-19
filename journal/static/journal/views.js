@@ -140,3 +140,57 @@ function clearMessages() {
     // Clear any previous messages
     message_container.innerHTML = "";
 }
+
+
+function util_returnAutocompleteExerciseSearchForm(formId, listenerFunction) {
+    const searchForm = document.createElement('form');
+    searchForm.classList.add("row", "form-control");
+    searchForm.textContent = "Lookup Exercise:";
+
+    const searchInput = document.createElement('input');
+    searchInput.classList.add("form-control");
+    searchInput.setAttribute("type", "text");
+    searchInput.setAttribute("autocomplete", "off");
+    searchInput.setAttribute("placeholder", "Search Exercise");
+    searchInput.setAttribute("aria-label", "exercise search bar");
+    
+    searchInput.addEventListener('keyup', function () {
+        util_fetchExerciseSearchResults(this.value, formId, listenerFunction);
+    })
+
+    const searchResults = document.createElement('div');
+    searchResults.setAttribute("id", formId);
+
+    searchForm.append(searchInput, searchResults);
+    return searchForm;
+}
+
+
+function util_fetchExerciseSearchResults(searchQuery, formId, listenerFunction) {
+    fetch(`exercises/search/?q=${searchQuery}`)
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            displayMessage(data.error, false);
+        } else {
+            const container = document.getElementById(formId);
+            const results = data["results"]
+            const resultList = document.createElement('ul');
+            resultList.classList.add("list-group", "list-group-flush");
+
+            results.forEach(exercise => {
+                const item = document.createElement('li');
+                item.classList.add("list-group-item", "list-group-item-action");
+                item.dataset.exerciseId = exercise["id"];
+                item.textContent = exercise["name"];
+                item.addEventListener('click', function () {
+                    listenerFunction(this);
+                })
+                resultList.append(item);
+            })
+
+            container.innerHTML = "";
+            container.append(resultList);
+        }
+    })
+}

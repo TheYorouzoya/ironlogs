@@ -78,7 +78,7 @@ function ev_loadExerciseTable(ex_Data, currentPage, currentQuery) {
         cont.dataset.exerciseId = exercise["id"];
         cont.textContent = exercise["name"];
         cont.addEventListener('click', function () {
-            ev_loadExercise(this.dataset.exerciseId);
+            ev_loadExercise(this);
         });
         td.append(cont);
 
@@ -151,60 +151,14 @@ function ev_loadExerciseTable(ex_Data, currentPage, currentQuery) {
 
 function ev_loadDefaultForms() {
     evForms.innerHTML = "";
-    const searchForm = document.createElement('form');
-    searchForm.classList.add("row", "form-control");
-    searchForm.textContent = "Lookup Exercise:";
-
-    const searchInput = document.createElement('input');
-    searchInput.classList.add("form-control");
-    searchInput.setAttribute("type", "text");
-    searchInput.setAttribute("autocomplete", "off");
-    searchInput.setAttribute("placeholder", "Search Exercise");
-    searchInput.setAttribute("aria-label", "exercise search bar");
-    
-    searchInput.addEventListener('keyup', function () {
-        ev_fetchSearchResults(this.value);
-    })
-
-    const searchResults = document.createElement('div');
-    searchResults.setAttribute("id", "evSearchResults");
-
-    searchForm.append(searchInput, searchResults);
-
+    const searchForm = util_returnAutocompleteExerciseSearchForm("evSearchResults", ev_loadExercise);
     evForms.append(searchForm);
 }
 
-function ev_fetchSearchResults(searchQuery) {
-    fetch(`exercises/search/?q=${searchQuery}`)
-    .then(response => response.json())
-    .then(data => {
-        if (data.error) {
-            displayMessage(data.error, false);
-        } else {
-            const container = document.querySelector('#evSearchResults');
-            const results = data["results"]
-            const resultList = document.createElement('ul');
-            resultList.classList.add("list-group", "list-group-flush");
-
-            results.forEach(exercise => {
-                const item = document.createElement('li');
-                item.classList.add("list-group-item", "list-group-item-action");
-                item.dataset.exerciseId = exercise["id"];
-                item.textContent = exercise["name"];
-                item.addEventListener('click', function () {
-                    ev_loadExercise(this.dataset.exerciseId);
-                })
-                resultList.append(item);
-            })
-
-            container.innerHTML = "";
-            container.append(resultList);
-        }
-    })
-}
 
 
-function ev_loadExercise(exerciseId) {
+function ev_loadExercise(target) {
+    const exerciseId = target.dataset.exerciseId;
     fetch(`exercise/?id=${exerciseId}`)
     .then(response => response.json())
     .then(data => {
@@ -247,7 +201,65 @@ function ev_loadExercise(exerciseId) {
             const body = document.createElement('div');
             body.textContent = exercise["description"];
 
+            const graphContainer = document.createElement('div');
+            graphContainer.setAttribute("id", "exerciseChartContainer");
+            const chart = document.createElement('canvas');
+            chart.setAttribute("id", "exerciseChart");
+            graphContainer.append(chart);
+            body.append(graphContainer);
+
+
             evContent.append(header, body);
+            displayExerciseChart(exerciseId);
         }
     })
 }
+
+async function displayExerciseChart(exerciseId) {
+    fetch(`entry/all/${exerciseId}`)
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            displayMessage(data.error, false);
+        } else {
+            if (data["entries"] == false) {
+                document.querySelector('#exerciseChartContainer').textContent = "No journal entries exist for this exercise.";
+                return;
+            }
+
+            const entries = data["entries"];
+            
+            new Chart(
+                document.getElementById('exerciseChart'),
+                {
+                  type: 'line',
+                  data: {
+                    labels: entries.map(entry => entry.date),
+                    datasets: [
+                      {
+                        label: 'Exercise Intensity (in kgs)',
+                        data: entries.map(entry => entry.intensity),
+                        fill: false,
+                        borderColor: 'rgb(75, 192, 192)',
+                        tension: 0.1
+                      }
+                    ]
+                  },
+                  options: {
+                      plugins: {
+                          legend: {
+                              display: false
+                          }
+                      },
+                      scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                      }
+                  }
+                }
+            );
+        }
+    })
+    
+  };

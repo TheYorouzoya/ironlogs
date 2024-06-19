@@ -581,20 +581,29 @@ function pv_displayWorkoutExercises(row, days) {
                     "align-items-start"
                 );
 
-                item.innerHTML = `
-                    <div class="ms-2 me-auto">
-                    <div class="fw-bold">${exercise.name}</div>
-                    ${exercise.description}
-                    </div>
-                `;
+                const wrapper = document.createElement('div');
+                wrapper.classList.add("ms-2", "me-auto");
+
+                const exDiv = document.createElement('div');
+                exDiv.classList.add("fw-bold");
+                exDiv.textContent = exercise.name;
+                exDiv.addEventListener('click', function () {
+                    toggleView(EXERCISES_VIEW);
+                    emptyExerciseView();
+                    ev_loadExercise(exercise["id"]);
+                });
+
+                wrapper.append(exDiv, exercise.description);
+                item.append(wrapper);
+
                 item.dataset.exerciseId = exercise["id"];
-                const editButton = document.createElement('span');
-                editButton.classList.add("badge", "btn-sm", "btn", "btn-outline-info", "rounded-pill");
-                editButton.textContent = "Remove";
-                editButton.addEventListener('click', function () {
+                const removeButton = document.createElement('span');
+                removeButton.classList.add("badge", "btn-sm", "btn", "btn-outline-info", "rounded-pill");
+                removeButton.textContent = "Remove";
+                removeButton.addEventListener('click', function () {
                     pv_removeExerciseFromWorkout(this);
                 });
-                item.append(editButton);
+                item.append(removeButton);
                 listGroup.append(item);
             })
 

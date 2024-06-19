@@ -197,6 +197,15 @@ class Entry(models.Model):
             "reps": self.reps,
             "intensity": self.intensity,
         }
+    
+    def graph_serialize(self):
+        return {
+            "id": self.id,
+            "sets": self.sets,
+            "reps": self.reps,
+            "intensity": self.intensity,
+            "date": self.timestamp
+        }
 
     def __str__(self):
         return (f"{self.timestamp}: {self.exercise} for "  +

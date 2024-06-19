@@ -666,7 +666,7 @@ def filterExercises(request):
 @login_required
 def exerciseEntries(request, exerciseId):
     try:
-        exercise = Exercise.objects.get(id=exerciseId)
+        exercise = Exercise.objects.get(id=exerciseId, trainee=request.user)
     except Exercise.DoesNotExist:
         return JsonResponse({
             "error": "Exercise with ID does not exist!"
@@ -676,7 +676,7 @@ def exerciseEntries(request, exerciseId):
 
     return JsonResponse({
         "exercise": exercise.name,
-        "entries": [entry.serialize() for entry in entries]
+        "entries": [entry.graph_serialize() for entry in entries]
     }, safe=False)
 
 

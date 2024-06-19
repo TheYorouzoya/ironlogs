@@ -10,7 +10,7 @@ function loadEntriesView() {
         .then(response => response.json())
         .then(data => {
             if (data.error) {
-                console.log(data.error);
+                displayMessage(data.error, false);
             } else {
                 populateEntriesHeader("This week's entries.");
                 populateEntries(data);
@@ -113,7 +113,7 @@ function submitEntriesForm() {
         .then(response => response.json())
         .then(data => {
             if (data.error) {
-                console.log("Error submitting form");
+                displayMessage(data.error, false);
             } else {
                 // Populate container with entries
                 populateEntriesHeader(`Entries from ${startDate} to ${endDate}`);
@@ -181,7 +181,7 @@ function loadCalendar(anchorDate) {
     .then(response => response.json())
     .then(data => {
         if (data.error) {
-            console.log("Error getting dates");
+            displayMessage(data.error, false);
         } else {
             mainCounter = 0;    // Counts the number of days added to the calendar so far
             afterCounter = 1;   // Counts the number of days added from the next month
@@ -215,8 +215,12 @@ function loadCalendar(anchorDate) {
                             dateSlot.classList.add("date-marked");
                             dateSlot.addEventListener('click', (event) => {
                                 loadEntryOnDate(`${year}-${month + 1}-${event.target.textContent}`);
-                            })
+                            });
                             datesIndex++;
+                        } else {
+                            dateSlot.addEventListener('click', () => {
+                                en_addEntryOnDate(`${year}-${month + 1}-${event.target.textContent}`);
+                            });
                         }
                         dayCounter++;
                     
@@ -241,10 +245,37 @@ function loadEntryOnDate(day) {
         .then(response => response.json())
         .then(data => {
             if (data.error) {
-                console.log("Error fetching entries on the given date");
+                displayMessage(data.error, false);
             } else {
-                populateEntriesHeader(`Entries on ${new Date(day).getDate()}`);
+                populateEntriesHeader(`Entries on ${new Date(day).toDateString()}`);
                 populateEntries(data);
             }
         })
+}
+
+
+function en_addEntryOnDate(day) {
+    const td = new Date();
+    const givenDate = new Date(day);
+
+    if (givenDate > td) return;
+
+    populateEntriesHeader(`Add entry on ${givenDate.toDateString()}:`);
+
+    const entriesContainer = document.querySelector('#entries-container');
+    entriesContainer.innerHTML = "";
+    
+    const searchForm = util_returnAutocompleteExerciseSearchForm(
+        "entriesSearchBar", 
+        function (target) {
+            en_addExerciseForm(target.dataset.exerciseId, day);
+            document.querySelector('#entriesSearchBar').innerHTML = "";
+        }
+    );
+    entriesContainer.append(searchForm);
+}
+
+
+function en_addExerciseForm(exerciseId, day) {
+    
 }
