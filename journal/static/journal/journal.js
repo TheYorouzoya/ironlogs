@@ -162,7 +162,9 @@ function loadForm(exercises, formContainerId) {
     form.append(container);
     form.addEventListener("submit", event => {
         event.preventDefault();
-        submitEntryForm();
+        if (submitEntryForm()) {
+            loadEntriesView();
+        }
     });
 
     document.querySelector(formContainerId).append(form);
@@ -204,9 +206,9 @@ function returnExerciseForm(exercise, exCount) {
     fieldRow.append(idTag);
 
     // Append fields to form
-    fieldRow.append(returnExerciseInputFieldsForm("Sets", exCount));
-    fieldRow.append(returnExerciseInputFieldsForm("Reps", exCount));
-    fieldRow.append(returnExerciseInputFieldsForm("Intensity", exCount));
+    fieldRow.append(returnExerciseInputFieldsForm("Sets"));
+    fieldRow.append(returnExerciseInputFieldsForm("Reps"));
+    fieldRow.append(returnExerciseInputFieldsForm("Intensity"));
 
     container.append(fieldRow);
 
@@ -214,9 +216,9 @@ function returnExerciseForm(exercise, exCount) {
 }
 
 // Create numeric input fields for an exercise
-function returnExerciseInputFieldsForm(fieldType, exCount) {
+function returnExerciseInputFieldsForm(fieldType) {
     const container = document.createElement('div');
-    container.classList.add("col-auto");
+    container.classList.add("col");
 
     const setField = document.createElement('input');
     setField.classList.add("form-control", fieldType);
@@ -261,9 +263,10 @@ function submitEntryForm() {
             data.push(exercise);
         })
 
-        submitEntries(data);
+        submitEntries(data, "");
+        return true;
     }
-
+    return false;
 }
 
 
@@ -283,24 +286,22 @@ function validateEntries(elements) {
     return flag;
 }
 
-function submitEntries(data) {
-    fetch('entries/add', {
+async function submitEntries(entries, date) {
+    let apiResponse = await fetch('entries/add', {
         method: 'POST',
         headers: {
             "X-CSRFToken": CSRF_TOKEN
         },
         credentials: 'same-origin',
         body: JSON.stringify({
-            exercises: data
+            exercises: entries,
+            date: date
         })
-    })
-
-    .then(response => response.json())
-    .then(data => {
-        if (data.error) {
-            console.log(data.error);
-        } else {
-            loadEntriesView();
-        }
-    })
+    });
+    let data = await apiResponse.json();
+    if (data.error) {
+        displayMessage(data.error, false);
+    } else {
+        displayMessage(data.message, true);
+    }
 }

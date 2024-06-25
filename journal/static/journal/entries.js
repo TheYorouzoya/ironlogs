@@ -1,18 +1,26 @@
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelector('#entries-form').addEventListener('submit', event => {
+        event.preventDefault();
+        submitEntriesForm(event);
+    });
+});
+
+
 // Loads the entries view and its contents
-function loadEntriesView() {
+async function loadEntriesView() {
     toggleView(ENTRIES_VIEW);
 
     // load calendar widget
-    loadCalendar(d);
+    let calendar = await loadCalendar(d);
 
     // fetch this week's entries
-    fetch(`entries/range/`)
+    return fetch(`entries/range/`)
         .then(response => response.json())
         .then(data => {
             if (data.error) {
                 displayMessage(data.error, false);
             } else {
-                populateEntriesHeader("This week's entries.");
+                populateEntriesHeader("This week's entries:");
                 populateEntries(data);
             }
         })
@@ -66,14 +74,35 @@ function populateEntries(data) {
         // For each entry in a day
         day["entries"].forEach(entry => {
             // Create list element
-            const itemContainer = document.createElement('ul');
+            const itemContainer = document.createElement('li');
             itemContainer.classList.add("list-group-item");
             // Don't display any intensity if it is set to 0
-            intensityString = (parseFloat(entry["intensity"]) == 0) ? "" : `(${entry["intensity"]} kg)`;
-            // set the list entry
-            itemContainer.innerHTML = `${entry.exercise["name"]} - ${entry.sets}x${entry.reps} ${intensityString}`;
+            let intensityString = (parseFloat(entry["intensity"]) == 0) ? "" : `(${entry["intensity"]} kg)`;
+            let entryString = `${entry.exercise["name"]} - ${entry.sets}x${entry.reps} ${intensityString}`;
+
+            const wrapper = document.createElement('div');
+            wrapper.dataset.id = entry["id"];
+            wrapper.dataset.name = entry.exercise["name"];
+            wrapper.classList.add("row");
+
+            const entryContent = document.createElement('div');
+            entryContent.classList.add("col");
+            entryContent.textContent = entryString;
+
+            const buttonWrapper = document.createElement('div');
+            buttonWrapper.classList.add("col-2");
+            
+            buttonWrapper.innerHTML = EDIT_BUTTON_SVG;
+
+            buttonWrapper.querySelector('svg').addEventListener('click', function() {
+                en_addEntryEditForm(this);
+            });
+
+            wrapper.append(entryContent, buttonWrapper);
+            itemContainer.append(wrapper);
+
             group.append(itemContainer);
-        })
+        });
 
         // Append items in order
         header.append(button);
@@ -87,6 +116,111 @@ function populateEntries(data) {
     })
     // Append accordion
     document.querySelector('#entries-container').append(accordion);
+}
+
+
+function en_addEntryEditForm (target) {
+    const container = target.parentNode.parentNode;
+    const id = container.dataset.id;
+    const name = container.dataset.name;
+
+    const form = en_returnExerciseEntryForm({"id": id, "name": name}, en_editEntryCloseButtonListener);
+
+    const buttonWrapper = document.createElement('div');
+    buttonWrapper.classList.add("d-flex", "justify-content-between");
+
+    const submitButton = returnButton("info", "Submit", function () {
+        en_submitEditEntryForm(form);
+    });
+    submitButton.classList.add("btn-sm");
+
+    const removeButton = returnButton("danger", "Remove Entry", function () {
+        en_removeEntry(form);
+    })
+    removeButton.classList.add("btn-sm");
+
+    buttonWrapper.append(submitButton, removeButton);
+    form.append(buttonWrapper);
+
+    container.style.display = "none";
+
+    container.parentNode.append(form);
+}
+
+
+async function en_submitEditEntryForm(target) {
+    const formContainer = target.querySelector('form');
+    const id = formContainer.dataset.exerciseId;
+    
+    const sets = formContainer.querySelector('.Sets');
+    const reps = formContainer.querySelector('.Reps');
+    const intensity = formContainer.querySelector('.Intensity');
+
+    var valid = true;
+
+    valid = validateEntries([sets, reps, intensity]);
+
+    if (valid) {
+        const apiResponse = await fetch('entry/', {
+            method: 'PUT',
+            headers: {
+                "X-CSRFToken": CSRF_TOKEN
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({
+                id: id,
+                sets: sets.value,
+                reps: reps.value,
+                intensity: intensity.value
+            })
+        });
+        const data = await apiResponse.json();
+
+        if (data.error) {
+            displayMessage(data.error, false);
+        } else {
+            displayMessage(data.message, true);
+            const entry = formContainer.parentNode.parentNode.parentNode.firstChild;
+            
+            let intensityString = (parseFloat(intensity.value) == 0) ? "" : `(${intensity.value} kg)`;
+            let entryString = `${entry.dataset.name} - ${sets.value}x${reps.value} ${intensityString}`;
+            entry.firstChild.textContent = entryString;
+            entry.style.display = "flex";
+
+            formContainer.parentNode.parentNode.remove();
+        }
+    }
+}
+
+
+async function en_removeEntry(target) {
+    const formContainer = target.querySelector('form');
+    const id = formContainer.dataset.exerciseId;
+
+    const apiResponse = await fetch(`entry/?id=${id}`, {
+        method: 'DELETE',
+        headers: {
+            "X-CSRFToken": CSRF_TOKEN
+        },
+        credentials: 'same-origin',
+    });
+    const data = await apiResponse.json();
+
+    if (data.error) {
+        displayMessage(data.error, false);
+    } else {
+        displayMessage(data.message, true);
+        var date = document.querySelector('.accordion-collapse').getAttribute("id");
+        await loadCalendar(new Date(date));
+        formContainer.parentNode.parentNode.parentNode.remove();
+    }
+}
+
+
+function en_editEntryCloseButtonListener(target) {
+    const element = target.parentNode.parentNode;
+    element.parentNode.firstChild.style.display = "flex";
+    element.remove();
 }
 
 
@@ -124,7 +258,7 @@ function submitEntriesForm() {
 
 // Loads the calendar widget which marks days that have a journal entry
 // The user can click on a valid day to fetch that day's entry
-function loadCalendar(anchorDate) {
+async function loadCalendar(anchorDate) {
     // Initialize month array
     const months = ["January", "February", "March", "April", "May", "June",
                     "July", "August", "September", "October", "November", "December"];
@@ -177,7 +311,7 @@ function loadCalendar(anchorDate) {
     if (afterPadding > 0 && afterPadding > 4) rows++;
 
     // Fetch current month's entry dates
-    fetch(`entries/calendar/?year=${year}&month=${month + 1}`)
+    return fetch(`entries/calendar/?year=${year}&month=${month + 1}`)
     .then(response => response.json())
     .then(data => {
         if (data.error) {
@@ -218,7 +352,7 @@ function loadCalendar(anchorDate) {
                             });
                             datesIndex++;
                         } else {
-                            dateSlot.addEventListener('click', () => {
+                            dateSlot.addEventListener('click', (event) => {
                                 en_addEntryOnDate(`${year}-${month + 1}-${event.target.textContent}`);
                             });
                         }
@@ -240,14 +374,14 @@ function loadCalendar(anchorDate) {
 }
 
 // Populates the entries div with the entries on a given date ('YYYY-MM-DD')
-function loadEntryOnDate(day) {
-    fetch(`entries/range/?startDate=${day}&endDate=${day}`)
+async function loadEntryOnDate(day) {
+    return fetch(`entries/range/?startDate=${day}&endDate=${day}`)
         .then(response => response.json())
         .then(data => {
             if (data.error) {
                 displayMessage(data.error, false);
             } else {
-                populateEntriesHeader(`Entries on ${new Date(day).toDateString()}`);
+                populateEntriesHeader(`Entries on ${new Date(day).toDateString()}:`);
                 populateEntries(data);
             }
         })
@@ -262,20 +396,230 @@ function en_addEntryOnDate(day) {
 
     populateEntriesHeader(`Add entry on ${givenDate.toDateString()}:`);
 
-    const entriesContainer = document.querySelector('#entries-container');
-    entriesContainer.innerHTML = "";
+    const entriesWrapper = document.querySelector('#entries-container');
+    entriesWrapper.innerHTML = "";
     
-    const searchForm = util_returnAutocompleteExerciseSearchForm(
+    const searchForm = en_returnAutocompleteWorkoutExerciseSearchForm(
         "entriesSearchBar", 
-        function (target) {
-            en_addExerciseForm(target.dataset.exerciseId, day);
+        function (target, workoutFlag) {
+            en_addExerciseFormListener(target, day, workoutFlag);
             document.querySelector('#entriesSearchBar').innerHTML = "";
         }
     );
-    entriesContainer.append(searchForm);
+    entriesWrapper.append(searchForm);
+
+    const exForms = document.createElement('div');
+    exForms.setAttribute("id", "enExerciseForms");
+    exForms.dataset.day = day;
+    entriesWrapper.append(exForms);
+
+    const buttonWrapper = document.createElement('div');
+    buttonWrapper.classList.add("d-flex");
+    
+    const submitButton = returnButton(
+        "info", 
+        "Add Entry",
+        async function() {
+            let submission = await en_submitEntries('enExerciseForms');
+            if(submission) {
+                let viewload = await loadEntriesView();
+                let entryload = await loadEntryOnDate(day);
+            }
+        }
+    );
+    submitButton.setAttribute("id", "enSubmitEntryButton");
+    submitButton.style.display = "none";
+    
+    buttonWrapper.append(submitButton);
+    exForms.append(buttonWrapper);
 }
 
 
-function en_addExerciseForm(exerciseId, day) {
+function en_returnAutocompleteWorkoutExerciseSearchForm(formId, formListener) {
+    const searchForm = document.createElement('form');
+    searchForm.classList.add("row", "form-control");
+    searchForm.textContent = "Lookup Workout or Exercise:";
+
+    const searchInput = document.createElement('input');
+    searchInput.classList.add("form-control");
+    searchInput.setAttribute("type", "text");
+    searchInput.setAttribute("autocomplete", "off");
+    searchInput.setAttribute("placeholder", "Search");
+    searchInput.setAttribute("aria-label", "workout and exercise search bar");
     
+    searchInput.addEventListener('keyup', function () {
+        en_fetchWorkoutExerciseSearchResults(this.value, formId, formListener);
+    })
+
+    const searchResults = document.createElement('div');
+    searchResults.setAttribute("id", formId);
+
+    searchForm.append(searchInput, searchResults);
+    return searchForm;
+}
+
+
+function en_fetchWorkoutExerciseSearchResults(searchQuery, formId, formListener) {
+    fetch(`search/workoutandexercises/?q=${searchQuery}`)
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            displayMessage(data.error, false);
+        } else {
+            const container = document.getElementById(formId);
+            const workouts = data["workouts"];
+            const exercises = data["exercises"];
+
+            const resultList = document.createElement('ul');
+            resultList.classList.add("list-group", "list-group-flush");
+
+            if (workouts.length > 0) {
+                const header = document.createElement('div');
+                header.textContent = "Workouts:";
+                resultList.append(header);
+
+                workouts.forEach(workout => {
+                    const item = document.createElement('li');
+                    item.classList.add("list-group-item", "list-group-item-action");
+                    item.dataset.id = workout["id"];
+                    item.textContent = workout["name"];
+                    item.addEventListener('click', function () {
+                        container.parentNode.getElementsByTagName('input')[0].value = "";
+                        formListener(this, true);
+                    })
+                    resultList.append(item);
+                })
+            }
+
+            if (exercises.length > 0) {
+                const header = document.createElement('div');
+                header.textContent = "Exercises:";
+                resultList.append(header);
+
+                exercises.forEach(exercise => {
+                    const item = document.createElement('li');
+                    item.classList.add("list-group-item", "list-group-item-action");
+                    item.dataset.id = exercise["id"];
+                    item.textContent = exercise["name"];
+                    item.addEventListener('click', function () {
+                        container.parentNode.getElementsByTagName('input')[0].value = "";
+                        formListener(this, false);
+                    })
+                    resultList.append(item);
+                })
+            }
+
+            container.innerHTML = "";
+            container.append(resultList);
+        }
+    })
+}
+
+
+function en_addExerciseFormListener(target, day, workoutFlag) {
+    const id = target.dataset.id;
+    const name = target.textContent;
+
+    const formContainer = document.querySelector("#enExerciseForms");
+    const submitButton = document.querySelector('#enSubmitEntryButton');
+    submitButton.style.display = "block";
+
+    if (workoutFlag) {
+        fetch(`workout/${id}/exercises`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                displayMessage(data.error, false);
+            } else {
+                const exercises = data["exercises"];
+                exercises.forEach(exercise => {
+                    const form = en_returnExerciseEntryForm(exercise, en_addEntryCloseButtonListener);
+                    formContainer.prepend(form);
+                });
+            }
+        })
+    } else {
+        formContainer.prepend(en_returnExerciseEntryForm({"id": id, "name": name}, en_addEntryCloseButtonListener));
+    }
+}
+
+
+function en_addEntryCloseButtonListener (target) {
+    const element = target.parentNode.parentNode;
+    if (element.parentNode.childElementCount <= 2) {
+        document.querySelector('#enSubmitEntryButton').style.display = "none";
+    }
+    element.remove();
+}
+
+
+function en_returnExerciseEntryForm(exercise, closeButtonListener) {
+    const mainCont = document.createElement('div');
+    mainCont.classList.add("row", "form-control", "d-flex");
+
+    const formContainer = document.createElement('div');
+    formContainer.classList.add("col");
+
+    const buttonWrapper = document.createElement('div');
+    buttonWrapper.classList.add("col-1");
+
+    const closeButton = document.createElement('div');
+    closeButton.classList.add("d-flex", "justify-content-end");
+    closeButton.innerHTML = CLOSE_BUTTON_SVG;
+
+    closeButton.addEventListener('click', function () {
+        closeButtonListener(this);
+    });
+
+    buttonWrapper.append(closeButton);
+
+    const exNameLabel = document.createElement('div');
+    exNameLabel.textContent = `${exercise.name}:`;
+
+    const exerciseForm = document.createElement('form');
+    exerciseForm.dataset.exerciseId = exercise.id;
+    exerciseForm.classList.add("row", "exercise-form");
+
+    exerciseForm.append(returnExerciseInputFieldsForm("Sets"));
+    exerciseForm.append(returnExerciseInputFieldsForm("Reps"));
+    exerciseForm.append(returnExerciseInputFieldsForm("Intensity"));
+
+    formContainer.append(exNameLabel, exerciseForm);
+
+    mainCont.append(formContainer, buttonWrapper);
+
+    return mainCont;
+}
+
+
+async function en_submitEntries(formId) {
+    const formContainer = document.getElementById(formId);
+    const forms = formContainer.querySelectorAll('form');
+
+    var valid = true;
+
+    forms.forEach(container => {
+        sets = container.querySelector('.Sets');
+        reps = container.querySelector('.Reps');
+        intensity = container.querySelector('.Intensity');
+
+        valid = validateEntries([sets, reps, intensity]);
+    })
+
+    if (valid) {
+        data = [];
+        forms.forEach(container => {
+            var exercise = new Object();
+            exercise.id = container.dataset.exerciseId;
+            exercise.sets = container.querySelector('.Sets').value;
+            exercise.reps = container.querySelector('.Reps').value;
+            exercise.intensity = container.querySelector('.Intensity').value;
+            data.push(exercise);
+        })
+
+        let submission = await submitEntries(data, formContainer.dataset.day);
+        return true;
+        
+    }
+    return false;
 }

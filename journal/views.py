@@ -386,9 +386,45 @@ def allBodyparts(request):
 
 @login_required
 def entry(request):
-    pass
+    if request.method == 'PUT':
+        data = json.loads(request.body)
 
-# allows the user to add entries in bulk. Usually called from the journal entry view
+        try:
+            entry = Entry.objects.get(id=data.get("id"), trainee=request.user)
+        except Entry.DoesNotExist:
+            return JsonResponse({
+                "error": "Requested entry with given ID does not exist!"
+            }, status=404)
+        
+        entry.sets = data.get("sets")
+        entry.reps = data.get("reps")
+        entry.intensity = data.get("intensity")
+
+        entry.save()
+
+        return JsonResponse({
+            "message": "Edited entry successfully."
+        }, status=201)
+    
+    elif request.method == 'DELETE':
+        id = request.GET.get("id")
+
+        try:
+            entry = Entry.objects.get(id=id, trainee=request.user)
+        except Entry.DoesNotExist:
+            return JsonResponse({
+                "error": "Requested entry with given ID does not exist!"
+            }, status=404)
+        
+        entry.delete()
+
+        return JsonResponse({
+            "message": "Removed entry successfully."
+        }, status=201)
+
+
+# allows the user to add entries in bulk. Usually called from the journal entry view.
+# Does not do partial updates.
 @login_required
 def addEntries(request):
     # Adding entries must be done via POST
@@ -398,6 +434,15 @@ def addEntries(request):
         }, status=400)
     
     data = json.loads(request.body)
+
+    try:
+        date = returnDate(data.get("date"), datetime.date.today())
+    except ValueError:
+        return JsonResponse({
+            "error": "Given date is invalid!"
+        }, status=400)
+
+    valid_entries = []
 
     for entry in data.get("exercises"):
         exerciseId = entry["id"]
@@ -417,9 +462,13 @@ def addEntries(request):
             exercise=exercise,
             sets=sets,
             reps=reps,
-            intensity=intensity
+            intensity=intensity,
+            timestamp=date
         )
-        newEntry.save()
+        valid_entries.append(newEntry)
+
+    for entry in valid_entries:
+        entry.save()
 
     return JsonResponse({"message": "Entries added successfully"}, status=201)
 
@@ -542,57 +591,6 @@ def exercise(request):
         return JsonResponse({
             "message": f"Successfully removed {exercise.name} from {workout.name} workout!"
         }, status=201)
-
-
-# returns all the exercises for the current user
-# @login_required
-# def allExercises(request):
-#     pageNum = request.GET.get("pageNum")
-
-#     try:
-#         pageNum = int(pageNum)
-#     except ValueError:
-#         return JsonResponse({
-#             "error": "Page number must be a number!"
-#         }, status=400)
-    
-#     exercises = Exercise.objects.filter(trainee=request.user).order_by('name')
-#     ITEMS_PER_PAGE = 10
-#     paginator = Paginator(exercises, ITEMS_PER_PAGE)
-    
-#     try:
-#         page = paginator.page(pageNum)
-#     except django.core.paginator.EmptyPage:
-#         return JsonResponse({
-#             "error": "Requested page number is either empty or invalid"
-#         }, status=400)
-
-#     payload = [exercise.table_serialize() for exercise in page.object_list]
-
-#     return JsonResponse({
-#         "exercises": payload,
-#         "hasNext": page.has_next(),
-#         "hasPrevious": page.has_previous()
-#     }, status=200)
-
-
-@login_required
-def searchExercises(request):
-    if (request.method == 'GET'):
-        searchQuery = request.GET.get("q")
-        searchQuery = searchQuery.strip()
-        qSet = Exercise.objects.filter(trainee=request.user)
-
-        if not searchQuery:
-            return JsonResponse({
-                "results": []
-            }, status=200)
-        
-        qSet = qSet.filter(name__icontains=searchQuery)
-
-        return JsonResponse({
-            "results": [exercise.serialize() for exercise in qSet.order_by('name')[:7]]
-        }, status=200)
 
     
 @login_required
@@ -733,3 +731,48 @@ def addExercises(request):
     return JsonResponse({
         "message": "Successfully added exercise(s)."
     }, status=201)
+
+
+#==============================================================================#
+#                              SEARCH ROUTES
+#==============================================================================#
+
+@login_required
+def searchExercises(request):
+    if (request.method == 'GET'):
+        searchQuery = request.GET.get("q")
+        searchQuery = searchQuery.strip()
+        qSet = Exercise.objects.filter(trainee=request.user)
+
+        if not searchQuery:
+            return JsonResponse({
+                "results": []
+            }, status=200)
+        
+        qSet = qSet.filter(name__icontains=searchQuery)
+
+        return JsonResponse({
+            "results": [exercise.serialize() for exercise in qSet.order_by('name')[:7]]
+        }, status=200)
+    
+
+@login_required
+def searchWorkoutAndExercises(request):
+    if (request.method == 'GET'):
+        searchQuery = request.GET.get("q")
+        searchQuery = searchQuery.strip()
+        
+        if not searchQuery:
+            return JsonResponse({
+                "workouts": [],
+                "exercises": []
+            }, status=200)
+        
+        exercises = Exercise.objects.filter(trainee=request.user).filter(name__icontains=searchQuery)
+        workouts = Workout.objects.filter(trainee=request.user).filter(name__icontains=searchQuery)
+
+        return JsonResponse({
+            "workouts": [workout.serialize() for workout in workouts.order_by('name')[:4]],
+            "exercises": [exercise.serialize() for exercise in exercises.order_by('name')[:4]]
+        }, status=200)
+
