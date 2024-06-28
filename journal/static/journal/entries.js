@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // Loads the entries view and its contents
 async function loadEntriesView() {
     toggleView(ENTRIES_VIEW);
+    emptyEntriesView();
 
     // load calendar widget
     let calendar = await loadCalendar(d);
@@ -24,6 +25,13 @@ async function loadEntriesView() {
                 populateEntries(data);
             }
         })
+}
+
+
+function emptyEntriesView() {
+    document.querySelector('#entries-header').innerHTML = "";
+    document.querySelector('#entries-search-bar').innerHTML = "";
+    document.querySelector('#entries-container').innerHTML = "";
 }
 
 // Populate the entries container (a bootsrap accordion) with the entries contained 
@@ -250,6 +258,7 @@ function submitEntriesForm() {
                 displayMessage(data.error, false);
             } else {
                 // Populate container with entries
+                emptyEntriesView();
                 populateEntriesHeader(`Entries from ${startDate} to ${endDate}`);
                 populateEntries(data);
             }
@@ -349,10 +358,12 @@ async function loadCalendar(anchorDate) {
                             dateSlot.classList.add("date-marked");
                             dateSlot.addEventListener('click', (event) => {
                                 loadEntryOnDate(`${year}-${month + 1}-${event.target.textContent}`);
+                                en_addEntryOnDate(`${year}-${month + 1}-${event.target.textContent}`);
                             });
                             datesIndex++;
                         } else {
                             dateSlot.addEventListener('click', (event) => {
+                                document.querySelector('#entries-container').innerHTML = "";
                                 en_addEntryOnDate(`${year}-${month + 1}-${event.target.textContent}`);
                             });
                         }
@@ -396,13 +407,13 @@ function en_addEntryOnDate(day) {
 
     populateEntriesHeader(`Add entry on ${givenDate.toDateString()}:`);
 
-    const entriesWrapper = document.querySelector('#entries-container');
+    const entriesWrapper = document.querySelector('#entries-search-bar');
     entriesWrapper.innerHTML = "";
     
     const searchForm = en_returnAutocompleteWorkoutExerciseSearchForm(
         "entriesSearchBar", 
         function (target, workoutFlag) {
-            en_addExerciseFormListener(target, day, workoutFlag);
+            en_addExerciseFormListener(target, workoutFlag);
             document.querySelector('#entriesSearchBar').innerHTML = "";
         }
     );
@@ -424,6 +435,7 @@ function en_addEntryOnDate(day) {
             if(submission) {
                 let viewload = await loadEntriesView();
                 let entryload = await loadEntryOnDate(day);
+                en_addEntryOnDate(day);
             }
         }
     );
@@ -438,7 +450,7 @@ function en_addEntryOnDate(day) {
 function en_returnAutocompleteWorkoutExerciseSearchForm(formId, formListener) {
     const searchForm = document.createElement('form');
     searchForm.classList.add("row", "form-control");
-    searchForm.textContent = "Lookup Workout or Exercise:";
+    searchForm.textContent = "Add Workout or Exercise:";
 
     const searchInput = document.createElement('input');
     searchInput.classList.add("form-control");
@@ -449,7 +461,7 @@ function en_returnAutocompleteWorkoutExerciseSearchForm(formId, formListener) {
     
     searchInput.addEventListener('keyup', function () {
         en_fetchWorkoutExerciseSearchResults(this.value, formId, formListener);
-    })
+    });
 
     const searchResults = document.createElement('div');
     searchResults.setAttribute("id", formId);
@@ -516,7 +528,7 @@ function en_fetchWorkoutExerciseSearchResults(searchQuery, formId, formListener)
 }
 
 
-function en_addExerciseFormListener(target, day, workoutFlag) {
+function en_addExerciseFormListener(target, workoutFlag) {
     const id = target.dataset.id;
     const name = target.textContent;
 

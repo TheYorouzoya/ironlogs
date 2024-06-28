@@ -78,7 +78,7 @@ function ev_loadExerciseTable(ex_Data, currentPage, currentQuery) {
         cont.dataset.exerciseId = exercise["id"];
         cont.textContent = exercise["name"];
         cont.addEventListener('click', function () {
-            ev_loadExercise(this);
+            ev_loadExercise(this.dataset.exerciseId);
         });
         td.append(cont);
 
@@ -157,8 +157,7 @@ function ev_loadDefaultForms() {
 
 
 
-function ev_loadExercise(target) {
-    const exerciseId = target.dataset.exerciseId;
+function ev_loadExercise(exerciseId) {
     fetch(`exercise/?id=${exerciseId}`)
     .then(response => response.json())
     .then(data => {

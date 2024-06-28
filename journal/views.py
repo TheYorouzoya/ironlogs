@@ -565,12 +565,12 @@ def exercise(request):
         return JsonResponse({
             "exercise": exercise.serialize()
         }, status=200)
-
-    # to delete an exercise object
-    elif request.method == 'DELETE':
+    
+    elif request.method == 'PUT':
         data = json.loads(request.body)
         exerciseId = data["exerciseId"]
         workoutId = data["workoutId"]
+        editFlag = data["editFlag"]
 
         try:
             exercise = Exercise.objects.get(id=exerciseId, trainee=request.user)
@@ -586,10 +586,35 @@ def exercise(request):
                 "error": "Workout with given ID does not exist!"
             }, status=404)
         
-        exercise.workout.remove(workout)
+        if (editFlag):
+            exercise.workout.add(workout)
+            message = f"Successfully added {exercise.name} to {workout.name} workout!"
+        else:
+            exercise.workout.remove(workout)
+            message = f"Successfully removed {exercise.name} from {workout.name} workout!"
 
         return JsonResponse({
-            "message": f"Successfully removed {exercise.name} from {workout.name} workout!"
+            "message": message
+        }, status=201)
+
+
+    # to delete an exercise object
+    elif request.method == 'DELETE':
+        id = request.GET.get("id")
+
+        try:
+            exercise = Exercise.objects.get(id=id, trainee=request.user)
+        except Exercise.DoesNotExist:
+            return JsonResponse({
+                "error": "Exercise with given ID does not exist!"
+            }, status=404)
+        
+        name = exercise.name
+
+        exercise.delete()
+
+        return JsonResponse({
+            "message": f"Successfully removed {name} exercise!"
         }, status=201)
 
     

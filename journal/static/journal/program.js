@@ -459,7 +459,7 @@ function pv_returnWorkoutTable(workouts) {
         const workout = document.createElement('td');
         workout.setAttribute("id", "row-workout-" + i);
         workout.classList.add("text-center");
-        workout.innerHTML = `<small><em>Add a workout</em></small>`;
+        workout.innerHTML = ADD_BUTTON_SVG;
 
         row.append(day, workout);
 
@@ -477,8 +477,7 @@ function pv_returnWorkoutTable(workouts) {
             column.textContent = workout["name"];
 
             const removeButton = document.createElement('span');
-            removeButton.classList.add("badge", "btn", "btn-outline-info", "btn-sm", "rounded-pill");
-            removeButton.textContent = "Remove";
+            removeButton.innerHTML = REMOVE_BUTTON_SVG;
             removeButton.addEventListener('click', function () {
                 pv_removeWorkoutFromTable(this);
             });
@@ -598,7 +597,7 @@ function pv_displayWorkoutExercises(row, days) {
 
                 item.dataset.exerciseId = exercise["id"];
                 const removeButton = document.createElement('span');
-                removeButton.classList.add("badge", "btn-sm", "btn", "btn-outline-info", "rounded-pill");
+                removeButton.classList.add("badge", "btn-sm", "btn", "btn-outline-danger", "rounded-pill");
                 removeButton.textContent = "Remove";
                 removeButton.addEventListener('click', function () {
                     pv_removeExerciseFromWorkout(this);
@@ -909,6 +908,37 @@ function pv_returnAddExerciseForm(row, days) {
     const container = document.createElement('div');
     container.setAttribute("id", "pvAddExerciseFormContainer");
 
+    const searchBar = util_returnAutocompleteExerciseSearchForm(
+        'pvExerciseSearchBar', 
+        async function (target) {
+            const exerciseId = target.dataset.exerciseId;
+            const workoutId = document.querySelector('#pvExerciseContainer').dataset.workoutId;
+            await fetch(`exercise/`, {
+                method: 'PUT',
+                headers: {
+                    "X-CSRFToken": CSRF_TOKEN
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({
+                    workoutId: workoutId,
+                    exerciseId: exerciseId,
+                    editFlag: true
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    displayMessage(data.error, false);
+                } else {
+                    pv_displayWorkoutExercises(row, days);
+                    displayMessage(data.message, true);
+                }
+            })
+        }
+    );
+    searchBar.style.display = "none";
+
+
     const exerciseForms = document.createElement('div');
     exerciseForms.classList.add("row");
     exerciseForms.setAttribute("id", "pvExerciseForms");
@@ -933,6 +963,7 @@ function pv_returnAddExerciseForm(row, days) {
         exerciseForms.innerHTML = "";
         submitButton.style.display = "none";
         cancelButton.style.display = "none";
+        searchBar.style.display = "none";
     })
     cancelButton.style.display = "none";
 
@@ -960,10 +991,10 @@ function pv_returnAddExerciseForm(row, days) {
         exerciseForms.prepend(formContainer);
         submitButton.style.display = "inline-block";
         cancelButton.style.display = "inline-block";
-
+        searchBar.style.display = "flex";
     });
 
-    container.append(addButton, exerciseForms, submitButton, cancelButton);
+    container.append(addButton, searchBar, exerciseForms, submitButton, cancelButton);
     return container;
 }
 
@@ -1062,14 +1093,15 @@ function pv_removeExerciseFromWorkout(target) {
     const workoutId = document.querySelector('#pvExerciseContainer').dataset.workoutId;
     
     fetch(`exercise/`, {
-        method: 'DELETE',
+        method: 'PUT',
         headers: {
             "X-CSRFToken": CSRF_TOKEN
         },
         credentials: 'same-origin',
         body: JSON.stringify({
             workoutId: workoutId,
-            exerciseId: exerciseId
+            exerciseId: exerciseId,
+            editFlag: false
         })
     })
     .then(response => response.json())
