@@ -13,7 +13,7 @@ function loadProgram(programId, workoutContainer, exerciseContainer, formFlag) {
     .then(response => response.json())
     .then(data => {
         if(data.error) {
-            document.querySelector(workoutContainer).innerHTML = "You do not have an active worout plan";
+            document.querySelector(workoutContainer).innerHTML = "You do not have an active workout plan";
         } else {
             var todayWorkoutId = '';
             // Create the card container

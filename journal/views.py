@@ -193,6 +193,53 @@ def programWorkouts(request, programId):
         }, safe=False)
 
 
+def currentProgram(request):
+    if request.method == 'GET':
+        try:
+            program = request.user.current_program
+        except Program.DoesNotExist:
+            return JsonResponse({
+                "error": "User has no active current program"
+            }, status=404)
+
+        return JsonResponse({
+            "program": program.serialize()
+        }, status=200)
+    
+    elif request.method == 'POST':
+        data = json.loads(request.body)
+
+        programId = data["id"]
+
+        try:
+            program = Program.objects.get(id=programId, trainee=request.user)
+        except Program.DoesNotExist:
+            return JsonResponse({
+                "error": "Given program with ID does not exist!"
+            }, status=404)
+        
+        request.user.current_program = program
+        request.user.save()
+
+        return JsonResponse({
+            "message": f"Successfully added {program.name} as current program!"
+        }, status=201)
+    
+    elif request.method == 'DELETE':
+        if (request.user.current_program != None):
+            name = request.user.current_program.name
+            request.user.current_program = None
+            request.user.save()
+            return JsonResponse({
+                "messge": f"Successfully removed {name} as current program!"
+            }, status=201)
+        
+        else:
+            return JsonResponse({
+                "message": "There is no current program to remove!"
+            }, status=200)
+
+
 # returns a list of all of the user's programs
 @login_required
 def allPrograms(request):

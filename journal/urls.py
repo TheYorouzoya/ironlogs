@@ -12,6 +12,7 @@ urlpatterns = [
     # Program
     path("program/", views.program, name="program"),
     path("program/all/", views.allPrograms, name="allPrograms"),
+    path("program/current/", views.currentProgram, name="currentProgram"),
     path("program/<str:programId>/workouts", views.programWorkouts, name="programWorkouts"),
 
     # Workouts

@@ -43,7 +43,7 @@ function pv_loadAllPrograms() {
             emptyProgramView();
             pvButtons.append(returnButton("info", "Add Program", function () {
                 pv_displayAddProgramForm();
-            }))
+            }));
 
             // Update Header
             pvHeader.textContent = "Your Programs";
@@ -127,6 +127,27 @@ function pv_loadProgram(pId) {
             btnCont.append(editButton, backButton);
             pvButtons.append(btnCont);
 
+            const badgeWrapper = document.createElement('div');
+            badgeWrapper.classList.add("row");
+            badgeWrapper.setAttribute("style", "font-size: 1rem");
+
+            const currentProgramBadge = document.createElement('span');
+            currentProgramBadge.classList.add("col-auto", "badge", "rounded-pill");
+            currentProgramBadge.addEventListener('click', async function() {
+                await pv_currentProgramBadgeListener(this);
+            });
+            if (program["isCurrent"]) {
+                currentProgramBadge.classList.add("text-bg-success");
+                currentProgramBadge.textContent = "Current Program";
+                currentProgramBadge.dataset.current = true;
+            } else {
+                currentProgramBadge.classList.add("text-bg-secondary")
+                currentProgramBadge.textContent = "Set as current program";
+                currentProgramBadge.dataset.current = false;
+            }
+            badgeWrapper.append(currentProgramBadge);
+            pvHeader.append(badgeWrapper);
+
 
             // Create the rest of the containers needed
             const workoutContainer = document.createElement('div');
@@ -148,6 +169,51 @@ function pv_loadProgram(pId) {
             pv_loadWorkouts(pId);
         }
     })
+}
+
+
+async function pv_currentProgramBadgeListener(target) {
+    const isCurrent = target.dataset.current;
+    const pId = document.querySelector('#pvWorkoutContainer').dataset.programId;
+
+    if (isCurrent === "true") {
+        const apiResponse = await fetch('program/current/', {
+            method: 'DELETE',
+            headers: {
+                "X-CSRFToken": CSRF_TOKEN
+            },
+            credentials: 'same-origin'
+        });
+        const data = await apiResponse.json();
+        if (data.error) {
+            displayMessage(data.error, false);
+        } else {
+            target.classList.remove('text-bg-success');
+            target.classList.add('text-bg-secondary');
+            target.textContent = "Set as Current Program";
+            target.dataset.current = false;
+        }
+    } else {
+        const apiResponse = await fetch('program/current/', {
+            method: 'POST', 
+            headers: {
+                "X-CSRFToken": CSRF_TOKEN
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({
+                "id": pId
+            })
+        });
+        const data = await apiResponse.json();
+        if (data.error) {
+            displayMessage(data.error, false);
+        } else {
+            target.classList.remove('text-bg-secondary');
+            target.classList.add('text-bg-success');
+            target.textContent = "Current Program";
+            target.dataset.current= true;
+        }
+    }
 }
 
 
