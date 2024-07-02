@@ -31,17 +31,6 @@ const REMOVE_BUTTON_SVG = `
     </svg>
 `;
 
-const d = new Date();
-const today = getPythonDay(d.getDay());
-
-function getPythonDay(day) {
-    if (day == 0) {
-        return 6;
-    } else {
-        return day - 1;
-    }
-}
-
 // load respective views when clicked on the nav
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelector('#entries').addEventListener('click', () => {
@@ -56,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelector('#program').addEventListener('click', () => {
         loadProgramView();
     })
-
+    jv_init();
     // By default, load the journal view
     loadJournalView();
 });
@@ -217,4 +206,216 @@ function util_fetchExerciseSearchResults(searchQuery, formId, listenerFunction) 
             container.append(resultList);
         }
     })
+}
+
+// Create numeric input fields for an exercise
+function util_returnExerciseInputFieldsForm(fieldType) {
+    const container = document.createElement('div');
+    container.classList.add("col");
+
+    const setField = document.createElement('input');
+    setField.classList.add("form-control", fieldType);
+    setField.setAttribute("type", "number");
+    setField.setAttribute("min", 0);
+    if (fieldType === "Intensity") {
+        setField.setAttribute("step", "0.5");
+        setField.setAttribute("placeholder", "Weight");
+    } else {
+        setField.setAttribute("max", 100);
+        setField.setAttribute("step", "1");
+        setField.setAttribute("placeholder", fieldType);
+    }
+
+    container.append(setField);
+    return container;
+}
+
+
+function util_validateEntries(elements) {
+    flag = true;
+    elements.forEach(container => {
+        if (container.value == "") {
+            flag = false;
+            container.classList.add("is-invalid");
+            const feedback = document.createElement('div');
+            feedback.classList.add("col-auto", "invalid-feedback");
+            feedback.innerHTML = "Field cannot be empty";
+            container.parentNode.append(feedback);
+        }
+    })
+
+    return flag;
+}
+
+async function util_submitEntries(entries, date) {
+    let apiResponse = await fetch('entries/add', {
+        method: 'POST',
+        headers: {
+            "X-CSRFToken": CSRF_TOKEN
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify({
+            exercises: entries,
+            date: date
+        })
+    });
+    let data = await apiResponse.json();
+    if (data.error) {
+        displayMessage(data.error, false);
+    } else {
+        displayMessage(data.message, true);
+    }
+}
+
+
+function util_returnAutocompleteWorkoutExerciseSearchForm(formId, formListener) {
+    const searchForm = document.createElement('form');
+    searchForm.classList.add("row", "form-control");
+    searchForm.textContent = "Add Workout or Exercise:";
+
+    const searchInput = document.createElement('input');
+    searchInput.classList.add("form-control");
+    searchInput.setAttribute("type", "text");
+    searchInput.setAttribute("autocomplete", "off");
+    searchInput.setAttribute("placeholder", "Search");
+    searchInput.setAttribute("aria-label", "workout and exercise search bar");
+    
+    searchInput.addEventListener('keyup', function () {
+        util_fetchWorkoutExerciseSearchResults(this.value, formId, formListener);
+    });
+
+    const searchResults = document.createElement('div');
+    searchResults.setAttribute("id", formId);
+
+    searchForm.append(searchInput, searchResults);
+    return searchForm;
+}
+
+
+function util_fetchWorkoutExerciseSearchResults(searchQuery, formId, formListener) {
+    fetch(`search/workoutandexercises/?q=${searchQuery}`)
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            displayMessage(data.error, false);
+        } else {
+            const container = document.getElementById(formId);
+            const workouts = data["workouts"];
+            const exercises = data["exercises"];
+
+            const resultList = document.createElement('ul');
+            resultList.classList.add("list-group", "list-group-flush");
+
+            if (workouts.length > 0) {
+                const header = document.createElement('div');
+                header.textContent = "Workouts:";
+                resultList.append(header);
+
+                workouts.forEach(workout => {
+                    const item = document.createElement('li');
+                    item.classList.add("list-group-item", "list-group-item-action");
+                    item.dataset.id = workout["id"];
+                    item.textContent = workout["name"];
+                    item.addEventListener('click', function () {
+                        container.parentNode.getElementsByTagName('input')[0].value = "";
+                        formListener(this, true);
+                    })
+                    resultList.append(item);
+                })
+            }
+
+            if (exercises.length > 0) {
+                const header = document.createElement('div');
+                header.textContent = "Exercises:";
+                resultList.append(header);
+
+                exercises.forEach(exercise => {
+                    const item = document.createElement('li');
+                    item.classList.add("list-group-item", "list-group-item-action");
+                    item.dataset.id = exercise["id"];
+                    item.textContent = exercise["name"];
+                    item.addEventListener('click', function () {
+                        container.parentNode.getElementsByTagName('input')[0].value = "";
+                        formListener(this, false);
+                    })
+                    resultList.append(item);
+                })
+            }
+
+            container.innerHTML = "";
+            container.append(resultList);
+        }
+    })
+}
+
+
+function util_returnExerciseEntryForm(exercise, closeButtonListener) {
+    const mainCont = document.createElement('div');
+    mainCont.classList.add("row", "form-control", "d-flex");
+
+    const formContainer = document.createElement('div');
+    formContainer.classList.add("col");
+
+    const buttonWrapper = document.createElement('div');
+    buttonWrapper.classList.add("col-1");
+
+    const closeButton = document.createElement('div');
+    closeButton.classList.add("d-flex", "justify-content-end");
+    closeButton.innerHTML = CLOSE_BUTTON_SVG;
+
+    closeButton.addEventListener('click', function () {
+        closeButtonListener(this);
+    });
+
+    buttonWrapper.append(closeButton);
+
+    const exNameLabel = document.createElement('div');
+    exNameLabel.textContent = `${exercise.name}:`;
+
+    const exerciseForm = document.createElement('form');
+    exerciseForm.dataset.exerciseId = exercise.id;
+    exerciseForm.classList.add("row", "exercise-form");
+
+    exerciseForm.append(util_returnExerciseInputFieldsForm("Sets"));
+    exerciseForm.append(util_returnExerciseInputFieldsForm("Reps"));
+    exerciseForm.append(util_returnExerciseInputFieldsForm("Intensity"));
+
+    formContainer.append(exNameLabel, exerciseForm);
+
+    mainCont.append(formContainer, buttonWrapper);
+
+    return mainCont;
+}
+
+
+async function util_submitEntriesForm(formId) {
+    const formContainer = document.getElementById(formId);
+    const forms = formContainer.querySelectorAll('form');
+
+    var valid = true;
+
+    forms.forEach(container => {
+        sets = container.querySelector('.Sets');
+        reps = container.querySelector('.Reps');
+        intensity = container.querySelector('.Intensity');
+
+        valid = util_validateEntries([sets, reps, intensity]);
+    })
+
+    if (valid) {
+        data = [];
+        forms.forEach(container => {
+            var exercise = new Object();
+            exercise.id = container.dataset.exerciseId;
+            exercise.sets = container.querySelector('.Sets').value;
+            exercise.reps = container.querySelector('.Reps').value;
+            exercise.intensity = container.querySelector('.Intensity').value;
+            data.push(exercise);
+        })
+
+        let submission = await util_submitEntries(data, formContainer.dataset.day);
+        return true;
+        
+    }
+    return false;
 }

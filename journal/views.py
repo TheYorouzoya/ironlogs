@@ -171,12 +171,11 @@ def program(request):
 @login_required
 def programWorkouts(request, programId):
     if (programId == 'current'):    
-        try:
-            program = request.user.current_program
-        except Program.DoesNotExist:
+        program = request.user.current_program
+        if (program is None):
             return JsonResponse({
-                "message": "User has no active programs."
-                }, status=204)
+                "program": []
+            }, status=200)
     else:
         try:
             program = Program.objects.get(id=programId)
@@ -185,7 +184,7 @@ def programWorkouts(request, programId):
                 "error": "No such program with the given ID"
             }, status=404)
     
-    workouts = Workout.objects.filter(trainee=request.user, program=program)
+    workouts = Workout.objects.filter(trainee=request.user, program=program).order_by('name')
 
     return JsonResponse({
         "program": program.serialize(),
@@ -404,7 +403,7 @@ def workoutExercises(request, workoutId):
             "error": "Workout does not exist"
         }, status=404)
     
-    exercises = Exercise.objects.filter(workout=workout)
+    exercises = Exercise.objects.filter(workout=workout).order_by('name')
     
     return JsonResponse({
         "workout": workout.serialize(),

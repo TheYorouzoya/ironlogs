@@ -53,7 +53,6 @@ class Program(models.Model):
     def serialize(self):
         return {
             "id": self.id,
-            "user": self.trainee.username,
             "name": self.name,
             "description": self.description,
             "isCurrent": self.trainee.current_program == self
@@ -86,7 +85,6 @@ class Workout(models.Model):
     def serialize(self):
         return {
             "id": self.id,
-            "user": self.trainee.username,
             "name": self.name,
             "days": [day.serialize() for day in self.day.all()]
         }

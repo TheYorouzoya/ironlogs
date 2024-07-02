@@ -27,11 +27,21 @@
     <div id="content" class="container" data-bs-theme="dark">
         <div id="message" class="toast-container position-fixed start-50 translate-middle p-3"></div>
         <div id="journal-view">
-            <div class="row">
-                <div id="journal-program-container" class="col-md-auto"></div>
-                <div id="journal-workout-container" class="col-md-auto"></div>
+            <div id="jvHeader">
+
             </div>
-            <div id="journal-form"></div>
+            <div id="jvContent">
+                <div class="row">
+                    <div id="jvWorkouts" class="col-auto"></div>
+                    <div id="jvForms" class="col-auto">
+                        <div id="jvSearchBar"></div>
+                        <div id="jvEntryForms"></div>
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" id="jvSubmit" class="btn btn-outline-info mb-3">Add Entry</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         <div id="entries-view">
             <div id="entries-calendar-container" class="container">

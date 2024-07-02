@@ -12,7 +12,7 @@ async function loadEntriesView() {
     emptyEntriesView();
 
     // load calendar widget
-    let calendar = await loadCalendar(d);
+    let calendar = await loadCalendar(new Date());
 
     // fetch this week's entries
     return fetch(`entries/range/`)
@@ -132,7 +132,7 @@ function en_addEntryEditForm (target) {
     const id = container.dataset.id;
     const name = container.dataset.name;
 
-    const form = en_returnExerciseEntryForm({"id": id, "name": name}, en_editEntryCloseButtonListener);
+    const form = util_returnExerciseEntryForm({"id": id, "name": name}, en_editEntryCloseButtonListener);
 
     const buttonWrapper = document.createElement('div');
     buttonWrapper.classList.add("d-flex", "justify-content-between");
@@ -166,7 +166,7 @@ async function en_submitEditEntryForm(target) {
 
     var valid = true;
 
-    valid = validateEntries([sets, reps, intensity]);
+    valid = util_validateEntries([sets, reps, intensity]);
 
     if (valid) {
         const apiResponse = await fetch('entry/', {
@@ -410,7 +410,7 @@ function en_addEntryOnDate(day) {
     const entriesWrapper = document.querySelector('#entries-search-bar');
     entriesWrapper.innerHTML = "";
     
-    const searchForm = en_returnAutocompleteWorkoutExerciseSearchForm(
+    const searchForm = util_returnAutocompleteWorkoutExerciseSearchForm(
         "entriesSearchBar", 
         function (target, workoutFlag) {
             en_addExerciseFormListener(target, workoutFlag);
@@ -431,7 +431,7 @@ function en_addEntryOnDate(day) {
         "info", 
         "Add Entry",
         async function() {
-            let submission = await en_submitEntries('enExerciseForms');
+            let submission = await util_submitEntriesForm('enExerciseForms');
             if(submission) {
                 let viewload = await loadEntriesView();
                 let entryload = await loadEntryOnDate(day);
@@ -444,87 +444,6 @@ function en_addEntryOnDate(day) {
     
     buttonWrapper.append(submitButton);
     exForms.append(buttonWrapper);
-}
-
-
-function en_returnAutocompleteWorkoutExerciseSearchForm(formId, formListener) {
-    const searchForm = document.createElement('form');
-    searchForm.classList.add("row", "form-control");
-    searchForm.textContent = "Add Workout or Exercise:";
-
-    const searchInput = document.createElement('input');
-    searchInput.classList.add("form-control");
-    searchInput.setAttribute("type", "text");
-    searchInput.setAttribute("autocomplete", "off");
-    searchInput.setAttribute("placeholder", "Search");
-    searchInput.setAttribute("aria-label", "workout and exercise search bar");
-    
-    searchInput.addEventListener('keyup', function () {
-        en_fetchWorkoutExerciseSearchResults(this.value, formId, formListener);
-    });
-
-    const searchResults = document.createElement('div');
-    searchResults.setAttribute("id", formId);
-
-    searchForm.append(searchInput, searchResults);
-    return searchForm;
-}
-
-
-function en_fetchWorkoutExerciseSearchResults(searchQuery, formId, formListener) {
-    fetch(`search/workoutandexercises/?q=${searchQuery}`)
-    .then(response => response.json())
-    .then(data => {
-        if (data.error) {
-            displayMessage(data.error, false);
-        } else {
-            const container = document.getElementById(formId);
-            const workouts = data["workouts"];
-            const exercises = data["exercises"];
-
-            const resultList = document.createElement('ul');
-            resultList.classList.add("list-group", "list-group-flush");
-
-            if (workouts.length > 0) {
-                const header = document.createElement('div');
-                header.textContent = "Workouts:";
-                resultList.append(header);
-
-                workouts.forEach(workout => {
-                    const item = document.createElement('li');
-                    item.classList.add("list-group-item", "list-group-item-action");
-                    item.dataset.id = workout["id"];
-                    item.textContent = workout["name"];
-                    item.addEventListener('click', function () {
-                        container.parentNode.getElementsByTagName('input')[0].value = "";
-                        formListener(this, true);
-                    })
-                    resultList.append(item);
-                })
-            }
-
-            if (exercises.length > 0) {
-                const header = document.createElement('div');
-                header.textContent = "Exercises:";
-                resultList.append(header);
-
-                exercises.forEach(exercise => {
-                    const item = document.createElement('li');
-                    item.classList.add("list-group-item", "list-group-item-action");
-                    item.dataset.id = exercise["id"];
-                    item.textContent = exercise["name"];
-                    item.addEventListener('click', function () {
-                        container.parentNode.getElementsByTagName('input')[0].value = "";
-                        formListener(this, false);
-                    })
-                    resultList.append(item);
-                })
-            }
-
-            container.innerHTML = "";
-            container.append(resultList);
-        }
-    })
 }
 
 
@@ -545,13 +464,13 @@ function en_addExerciseFormListener(target, workoutFlag) {
             } else {
                 const exercises = data["exercises"];
                 exercises.forEach(exercise => {
-                    const form = en_returnExerciseEntryForm(exercise, en_addEntryCloseButtonListener);
+                    const form = util_returnExerciseEntryForm(exercise, en_addEntryCloseButtonListener);
                     formContainer.prepend(form);
                 });
             }
         })
     } else {
-        formContainer.prepend(en_returnExerciseEntryForm({"id": id, "name": name}, en_addEntryCloseButtonListener));
+        formContainer.prepend(util_returnExerciseEntryForm({"id": id, "name": name}, en_addEntryCloseButtonListener));
     }
 }
 
@@ -562,76 +481,4 @@ function en_addEntryCloseButtonListener (target) {
         document.querySelector('#enSubmitEntryButton').style.display = "none";
     }
     element.remove();
-}
-
-
-function en_returnExerciseEntryForm(exercise, closeButtonListener) {
-    const mainCont = document.createElement('div');
-    mainCont.classList.add("row", "form-control", "d-flex");
-
-    const formContainer = document.createElement('div');
-    formContainer.classList.add("col");
-
-    const buttonWrapper = document.createElement('div');
-    buttonWrapper.classList.add("col-1");
-
-    const closeButton = document.createElement('div');
-    closeButton.classList.add("d-flex", "justify-content-end");
-    closeButton.innerHTML = CLOSE_BUTTON_SVG;
-
-    closeButton.addEventListener('click', function () {
-        closeButtonListener(this);
-    });
-
-    buttonWrapper.append(closeButton);
-
-    const exNameLabel = document.createElement('div');
-    exNameLabel.textContent = `${exercise.name}:`;
-
-    const exerciseForm = document.createElement('form');
-    exerciseForm.dataset.exerciseId = exercise.id;
-    exerciseForm.classList.add("row", "exercise-form");
-
-    exerciseForm.append(returnExerciseInputFieldsForm("Sets"));
-    exerciseForm.append(returnExerciseInputFieldsForm("Reps"));
-    exerciseForm.append(returnExerciseInputFieldsForm("Intensity"));
-
-    formContainer.append(exNameLabel, exerciseForm);
-
-    mainCont.append(formContainer, buttonWrapper);
-
-    return mainCont;
-}
-
-
-async function en_submitEntries(formId) {
-    const formContainer = document.getElementById(formId);
-    const forms = formContainer.querySelectorAll('form');
-
-    var valid = true;
-
-    forms.forEach(container => {
-        sets = container.querySelector('.Sets');
-        reps = container.querySelector('.Reps');
-        intensity = container.querySelector('.Intensity');
-
-        valid = validateEntries([sets, reps, intensity]);
-    })
-
-    if (valid) {
-        data = [];
-        forms.forEach(container => {
-            var exercise = new Object();
-            exercise.id = container.dataset.exerciseId;
-            exercise.sets = container.querySelector('.Sets').value;
-            exercise.reps = container.querySelector('.Reps').value;
-            exercise.intensity = container.querySelector('.Intensity').value;
-            data.push(exercise);
-        })
-
-        let submission = await submitEntries(data, formContainer.dataset.day);
-        return true;
-        
-    }
-    return false;
 }
