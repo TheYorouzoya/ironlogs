@@ -1,4 +1,5 @@
-var jvHeader, jvWorkouts, jvSearchBar, jvEntryForms, jvSubmit;
+let jvHeader, jvWorkouts, jvSearchBar, jvEntryForms, jvSubmit;
+
 function jv_init() {
     jvHeader = document.querySelector('#jvHeader');
     jvWorkouts = document.querySelector('#jvWorkouts');
@@ -7,18 +8,20 @@ function jv_init() {
     jvSubmit = document.querySelector('#jvSubmit');
 
     jvSubmit.addEventListener('click', async function () {
-        await util_submitEntriesForm("jvEntryForms");
-        loadEntriesView();
+        if(await util_submitEntriesForm("jvEntryForms")) {
+            history.pushState({"view": ENTRIES_VIEW}, '', '#entries');
+            loadEntriesView();
+        };
     })
 };
 
-function loadJournalView() {
+async function loadJournalView() {
     toggleView(JOURNAL_VIEW);
     emptyJournalView();
 
     jvSubmit.style.display = "none";
 
-    jv_loadCurrentProgramWorkouts();
+    await jv_loadCurrentProgramWorkouts();
 }
 
 function emptyJournalView() {
@@ -74,9 +77,10 @@ async function jv_loadCurrentProgramWorkouts() {
         row.innerHTML = day + " - Rest";
         template.push(row);
     });
+
     jvHeader.innerHTML = `<div class="display-6">Today: Rest</div>`;
 
-    var today = new Date();
+    let today = new Date();
     jvEntryForms.dataset.day = "";
     today = today.getDay();
     today = today == 0 ? 6 : today - 1;
@@ -87,6 +91,7 @@ async function jv_loadCurrentProgramWorkouts() {
             const dayName = dayObj["day"];
             template[day].innerHTML = dayName + " - " + workout["name"];
             template[day].dataset.workoutId = workout["id"];
+            template[day].setAttribute("id", "jvWorkoutRow" + day);
             if (day == today) {
                 template[day].classList.add("active");
                 jvHeader.innerHTML = `<div class="display-6">Today's Workout: ${workout["name"]}</div>`;
@@ -96,6 +101,14 @@ async function jv_loadCurrentProgramWorkouts() {
                 });
             }
             template[day].addEventListener('click', function() {
+                history.pushState(
+                    {
+                        "view": JOURNAL_VIEW,
+                        "workoutRow": this.getAttribute("id"),
+                    },
+                    '',
+                    '#home'
+                )
                 jv_cardClickListener(this);
             });
         });
@@ -147,7 +160,7 @@ function jv_returnWorkoutExerciseForms(workoutId) {
             if (exercises.length > 0) {
                 jvSubmit.style.display = "flex";
             }
-            var entryList = [];
+            let entryList = [];
 
             exercises.forEach(exercise => {
                 const entry = util_returnExerciseEntryForm(exercise, jv_entryFormCloseButtonListener);

@@ -80,13 +80,14 @@
                 </form>
             </div>
             <div id="entries-header"></div>
-            <div id="entries-container"></div>
             <div id="entries-search-bar"></div>
+            <div id="entries-container"></div>
+            
         </div>
         <div id="program-view">
             <div class="row">
             <div id="program-view-header" class="display-6 col">Your Programs</div>
-            <div id="program-view-buttons" class="col text-end"></div>
+            <div id="program-view-buttons" class="col d-flex justify-content-end"></div>
             </div>
             <div id="program-view-description"></div>
             <div id="program-view-container">
@@ -107,7 +108,8 @@
 {% endblock %}
 
 {% block script %}
-    <script src="{% static 'journal/views.js' %}?{% now 'U' %}"></script>
+    <script src="{% static 'journal/history.js' %}?{% now 'U' %}"></script>
+    <script src="{% static 'journal/utils.js' %}?{% now 'U' %}"></script>
     <script src="{% static 'journal/journal.js' %}?{% now 'U' %}"></script>
     <script src="{% static 'journal/entries.js' %}?{% now 'U' %}"></script>
     <script src="{% static 'journal/program.js' %}?{% now 'U' %}"></script>

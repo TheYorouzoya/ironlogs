@@ -1,7 +1,21 @@
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('#entries-form').addEventListener('submit', event => {
         event.preventDefault();
-        submitEntriesForm(event);
+        const startDate = document.querySelector('#entriesStartDate').value;
+        const endDate = document.querySelector('#entriesEndDate').value;
+        history.pushState(
+            {
+                "view": ENTRIES_VIEW,
+                "range": {
+                    "start": startDate,
+                    "end": endDate
+                },
+                "calendar": document.querySelector('#calendar-current-date').dataset.anchorDate
+            },
+            '',
+            `#entries/start=${startDate}&end=${endDate}`
+        )
+        en_submitEntriesRangeForm();
     });
 });
 
@@ -12,17 +26,17 @@ async function loadEntriesView() {
     emptyEntriesView();
 
     // load calendar widget
-    let calendar = await loadCalendar(new Date());
+    en_loadCalendar(new Date());
 
     // fetch this week's entries
-    return fetch(`entries/range/`)
+    await fetch(`entries/range/`)
         .then(response => response.json())
         .then(data => {
             if (data.error) {
                 displayMessage(data.error, false);
             } else {
-                populateEntriesHeader("This week's entries:");
-                populateEntries(data);
+                en_populateEntriesHeader("This week's entries:");
+                en_populateEntries(data);
             }
         })
 }
@@ -36,7 +50,7 @@ function emptyEntriesView() {
 
 // Populate the entries container (a bootsrap accordion) with the entries contained 
 // in the data object
-function populateEntries(data) {
+function en_populateEntries(data) {
     // Empty the current container
     document.querySelector('#entries-container').innerHTML = "";
    
@@ -91,6 +105,9 @@ function populateEntries(data) {
             const wrapper = document.createElement('div');
             wrapper.dataset.id = entry["id"];
             wrapper.dataset.name = entry.exercise["name"];
+            wrapper.dataset.sets = entry.sets;
+            wrapper.dataset.reps = entry.reps;
+            wrapper.dataset.intensity = entry.intensity;
             wrapper.classList.add("row");
 
             const entryContent = document.createElement('div');
@@ -133,6 +150,10 @@ function en_addEntryEditForm (target) {
     const name = container.dataset.name;
 
     const form = util_returnExerciseEntryForm({"id": id, "name": name}, en_editEntryCloseButtonListener);
+    form.querySelector('.Sets').value = container.dataset.sets;
+    form.querySelector('.Reps').value = container.dataset.reps;
+    form.querySelector('.Intensity').value = container.dataset.intensity;
+
 
     const buttonWrapper = document.createElement('div');
     buttonWrapper.classList.add("d-flex", "justify-content-between");
@@ -219,7 +240,7 @@ async function en_removeEntry(target) {
     } else {
         displayMessage(data.message, true);
         var date = document.querySelector('.accordion-collapse').getAttribute("id");
-        await loadCalendar(new Date(date));
+        await en_loadCalendar(new Date(date));
         formContainer.parentNode.parentNode.parentNode.remove();
     }
 }
@@ -233,7 +254,7 @@ function en_editEntryCloseButtonListener(target) {
 
 
 // Populates the Entries header with the given header text
-function populateEntriesHeader(headerText) {
+function en_populateEntriesHeader(headerText) {
     const header = document.querySelector('#entries-header');
     header.innerHTML = "";
 
@@ -245,7 +266,7 @@ function populateEntriesHeader(headerText) {
 
 // Function that fires up when the user submits the form to fetch entries
 // from a particular date range
-function submitEntriesForm() {
+function en_submitEntriesRangeForm() {
     // Get the start and end date form values
     const startDate = document.querySelector('#entriesStartDate').value;
     const endDate = document.querySelector('#entriesEndDate').value;
@@ -259,22 +280,19 @@ function submitEntriesForm() {
             } else {
                 // Populate container with entries
                 emptyEntriesView();
-                populateEntriesHeader(`Entries from ${startDate} to ${endDate}`);
-                populateEntries(data);
+                en_populateEntriesHeader(`Entries from ${startDate} to ${endDate}`);
+                en_populateEntries(data);
             }
         })
 }
 
 // Loads the calendar widget which marks days that have a journal entry
 // The user can click on a valid day to fetch that day's entry
-async function loadCalendar(anchorDate) {
+function en_loadCalendar(anchorDate) {
     // Initialize month array
     const months = ["January", "February", "March", "April", "May", "June",
                     "July", "August", "September", "October", "November", "December"];
                     
-    // Select date container and empty it
-    const calendarBody = document.querySelector('#calendar-dates');
-    calendarBody.innerHTML = "";
     // empty nav and reset the previous and next buttons
     const calendarNav = document.querySelector('#calendar-nav');
     calendarNav.innerHTML = "";
@@ -289,19 +307,20 @@ async function loadCalendar(anchorDate) {
     // Update the current (month, year) header in the calendar
     const currentDate = document.querySelector('#calendar-current-date');
     currentDate.innerHTML = `${months[month]} ${year}`;
+    currentDate.dataset.anchorDate = `${year}-${month + 1}-1`;
 
     // Calculate previous month and year and attach listener for navigation
     const prevMonth = month === 0 ? 11 : month - 1;
     const prevYear = month === 0 ? year - 1 : year;
     document.querySelector('#calendar-previous').addEventListener('click', () => {
-        loadCalendar(new Date(prevYear, prevMonth, 1));
+        en_loadCalendar(new Date(prevYear, prevMonth, 1));
     })
     
     // Calculate next month and year and attach listener for navigation
     const nextMonth = month === 11 ? 1 : month + 1;
     const nextYear = month === 11 ? year + 1 : year;
     document.querySelector('#calendar-next').addEventListener('click', () => {
-        loadCalendar(new Date(nextYear, nextMonth, 1));
+        en_loadCalendar(new Date(nextYear, nextMonth, 1));
     })
 
     // Extra days from previous month
@@ -312,9 +331,9 @@ async function loadCalendar(anchorDate) {
     const afterPadding = 6 - new Date(year, month, days).getDay();
 
     // Day counter to sync with entry dates
-    dayCounter = 1;
+    let dayCounter = 1;
 
-    rows = 4;
+    let rows = 4;
 
     if (beforeDays > 0) rows++;
     if (afterPadding > 0 && afterPadding > 4) rows++;
@@ -326,20 +345,23 @@ async function loadCalendar(anchorDate) {
         if (data.error) {
             displayMessage(data.error, false);
         } else {
-            mainCounter = 0;    // Counts the number of days added to the calendar so far
-            afterCounter = 1;   // Counts the number of days added from the next month
+            // Select date container and empty it
+            const calendarBody = document.querySelector('#calendar-dates');
+            calendarBody.innerHTML = "";
+            let mainCounter = 0;    // Counts the number of days added to the calendar so far
+            let afterCounter = 1;   // Counts the number of days added from the next month
 
             // Sorted list of days which have a journal entry
             dates = data["dates"];
             // Index pointer to index into the array
             datesIndex = 0;     
 
-            for (var i = 0; i < rows; i++) {    // For each row in the calendar
+            for (let i = 0; i < rows; i++) {    // For each row in the calendar
                 // Initialize row div
                 const row = document.createElement('div');
                 row.classList.add("row", "row-cols-7");
                 
-                for (var j = 0; j < 7; j++, mainCounter++) {    // For each date in row
+                for (let j = 0; j < 7; j++, mainCounter++) {    // For each date in row
                     // Initialize date div
                     const dateSlot = document.createElement('div');
                     dateSlot.classList.add("col");
@@ -353,18 +375,41 @@ async function loadCalendar(anchorDate) {
                     // Add days from current month
                     else if ((mainCounter >= beforePadding) && (dayCounter <= days)) {
                         dateSlot.innerHTML = dayCounter;
+                        const clickDate = `${year}-${month + 1}-${dayCounter}`;
                         // Add event listener if an entry exists on this day
                         if ((datesIndex < dates.length) && (dayCounter == dates[datesIndex])) {
                             dateSlot.classList.add("date-marked");
-                            dateSlot.addEventListener('click', (event) => {
-                                loadEntryOnDate(`${year}-${month + 1}-${event.target.textContent}`);
-                                en_addEntryOnDate(`${year}-${month + 1}-${event.target.textContent}`);
+                            dateSlot.addEventListener('click', () => {
+                                history.pushState(
+                                    {
+                                        "view": ENTRIES_VIEW,
+                                        "calendar": clickDate,
+                                        "calendarDateClicked": {
+                                            "entry": true
+                                        }
+                                    },
+                                    '',
+                                    `#entries/date=${clickDate}`
+                                );
+                                en_loadEntryOnDate(clickDate);
+                                en_addEntryOnDate(clickDate);
                             });
                             datesIndex++;
                         } else {
-                            dateSlot.addEventListener('click', (event) => {
+                            dateSlot.addEventListener('click', () => {
+                                history.pushState(
+                                    {
+                                        "view": ENTRIES_VIEW,
+                                        "calendar": clickDate,
+                                        "calendarDateClicked": {
+                                            "entry": false
+                                        }
+                                    },
+                                    '',
+                                    `#entries/date=${clickDate}`
+                                );
                                 document.querySelector('#entries-container').innerHTML = "";
-                                en_addEntryOnDate(`${year}-${month + 1}-${event.target.textContent}`);
+                                en_addEntryOnDate(clickDate);
                             });
                         }
                         dayCounter++;
@@ -385,15 +430,15 @@ async function loadCalendar(anchorDate) {
 }
 
 // Populates the entries div with the entries on a given date ('YYYY-MM-DD')
-async function loadEntryOnDate(day) {
+async function en_loadEntryOnDate(day) {
     return fetch(`entries/range/?startDate=${day}&endDate=${day}`)
         .then(response => response.json())
         .then(data => {
             if (data.error) {
                 displayMessage(data.error, false);
             } else {
-                populateEntriesHeader(`Entries on ${new Date(day).toDateString()}:`);
-                populateEntries(data);
+                en_populateEntriesHeader(`Entries on ${new Date(day).toDateString()}:`);
+                en_populateEntries(data);
             }
         })
 }
@@ -405,7 +450,7 @@ function en_addEntryOnDate(day) {
 
     if (givenDate > td) return;
 
-    populateEntriesHeader(`Add entry on ${givenDate.toDateString()}:`);
+    en_populateEntriesHeader(`Add entry on ${givenDate.toDateString()}:`);
 
     const entriesWrapper = document.querySelector('#entries-search-bar');
     entriesWrapper.innerHTML = "";
@@ -434,7 +479,7 @@ function en_addEntryOnDate(day) {
             let submission = await util_submitEntriesForm('enExerciseForms');
             if(submission) {
                 let viewload = await loadEntriesView();
-                let entryload = await loadEntryOnDate(day);
+                let entryload = await en_loadEntryOnDate(day);
                 en_addEntryOnDate(day);
             }
         }
