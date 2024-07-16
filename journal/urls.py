@@ -19,6 +19,7 @@ urlpatterns = [
     path("workout/", views.workout, name="workout"),
     path("workout/<str:workoutId>/exercises", views.workoutExercises, name="workoutExercises"),
     path("workout/<str:workoutId>/day", views.workoutDay, name="workoutDay"),
+    path("workout/exercise/add", views.addExerciseToWorkout, name="addExerciseToWorkout"),
     
     # Bodyparts
     path("bodypart/all", views.allBodyparts, name="allBodyparts"),

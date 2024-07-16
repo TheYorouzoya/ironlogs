@@ -411,6 +411,44 @@ def workoutExercises(request, workoutId):
         }, safe=False)
 
 
+@login_required
+def addExerciseToWorkout(request):
+    if request.method != 'POST':
+        return JsonResponse({
+            "error": 'POST request required!'
+        }, status=405)
+    
+    data = json.loads(request.body)
+    exerciseId = data["exerciseId"]
+    workoutId = data["workoutId"]
+    editFlag = data["editFlag"]
+
+    try:
+        exercise = Exercise.objects.get(id=exerciseId, trainee=request.user)
+    except Exercise.DoesNotExist:
+        return JsonResponse({
+            "error": "Exercise with given ID doesn not exists!"
+        }, status=404)
+    
+    try:
+        workout = Workout.objects.get(id=workoutId, trainee=request.user)
+    except Workout.DoesNotExist:
+        return JsonResponse({
+            "error": "Workout with given ID does not exist!"
+        }, status=404)
+    
+    if (editFlag):
+        exercise.workout.add(workout)
+        message = f"Successfully added {exercise.name} to {workout.name} workout!"
+    else:
+        exercise.workout.remove(workout)
+        message = f"Successfully removed {exercise.name} from {workout.name} workout!"
+
+    return JsonResponse({
+        "message": message
+    }, status=201)
+
+
 #==============================================================================#
 #                             BODYPART ROUTE
 #==============================================================================#
@@ -614,33 +652,47 @@ def exercise(request):
     
     elif request.method == 'PUT':
         data = json.loads(request.body)
-        exerciseId = data["exerciseId"]
-        workoutId = data["workoutId"]
-        editFlag = data["editFlag"]
+        print(data)
+        id = data["id"]
 
         try:
-            exercise = Exercise.objects.get(id=exerciseId, trainee=request.user)
+            exercise = Exercise.objects.get(id=id, trainee=request.user)
         except Exercise.DoesNotExist:
             return JsonResponse({
-                "error": "Exercise with given ID doesn not exists!"
+                "error": "Given exercise id does not exist!"
             }, status=404)
-        
-        try:
-            workout = Workout.objects.get(id=workoutId, trainee=request.user)
-        except Workout.DoesNotExist:
-            return JsonResponse({
-                "error": "Workout with given ID does not exist!"
-            }, status=404)
-        
-        if (editFlag):
-            exercise.workout.add(workout)
-            message = f"Successfully added {exercise.name} to {workout.name} workout!"
-        else:
-            exercise.workout.remove(workout)
-            message = f"Successfully removed {exercise.name} from {workout.name} workout!"
 
+        name = data["name"]
+        description = data["description"]
+
+        if name == "":
+            return JsonResponse({
+                "error": "Exercise Name cannot be empty!"
+            }, status=400)
+
+        exercise.name = name
+        exercise.description = description
+        exercise.body_part.clear()
+
+        parts = data["bodyparts"]
+
+        if len(parts) <= 0:
+            return JsonResponse({
+                "error": "Exercise must have one or more bodyparts selected!"
+            }, status=400)
+
+        for partId in parts:
+            try:
+                bodypart = BodyPart.objects.get(id=partId)
+            except BodyPart.DoesNotExist:
+                return JsonResponse({
+                    "error": "Bodypart with given ID does not exist!"
+                }, status=404)
+            exercise.body_part.add(bodypart)
+
+        exercise.save()
         return JsonResponse({
-            "message": message
+            "message": f"Successfully edited {name} exercise details!"
         }, status=201)
 
 

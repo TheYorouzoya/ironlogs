@@ -34,78 +34,78 @@ function emptyProgramView() {
 
 // Loads all the user's programs into a list. Clicking on a list element loads
 // the particular workout
-function pv_loadAllPrograms() {
-    return fetch('program/all/')
-    .then(response => response.json())
-    .then(data => {
-        if (data.error) {
-            displayMessage(data.error, false);
-        } else {
-            emptyProgramView();
-            pvButtons.append(returnButton("info", "Add Program", function () {
-                history.pushState(
-                    {
-                        "view": PROGRAM_VIEW,
-                        "addProgram": true,
-                    },
-                    '',
-                    '#program/add'
-                )
-                pv_displayAddProgramForm();
-            }));
+async function pv_loadAllPrograms() {
+    const apiResponse = await fetch('program/all/')
+    const data = await apiResponse.json();
+    
+    if (data.error) {
+        displayMessage(data.error, false);
+        return;
+    }
 
-            // Update Header
-            pvHeader.textContent = "Your Programs";
+    emptyProgramView();
+    pvButtons.append(returnButton("info", "Add Program", function () {
+        history.pushState(
+            {
+                "view": PROGRAM_VIEW,
+                "addProgram": true,
+            },
+            '',
+            '#program/add'
+        )
+        pv_displayAddProgramForm();
+    }));
 
-            // Initialize program container
-            const program_container = document.createElement('div');
-            program_container.classList.add("card", "program-card");
-            program_container.setAttribute("data-bs-theme", "dark");
+    // Update Header
+    pvHeader.textContent = "Your Programs";
 
-            // Initialize program list containers
-            const list_container = document.createElement('div');
-            list_container.classList.add("list-group", "list-group-flush");
+    // Initialize program container
+    const program_container = document.createElement('div');
+    program_container.classList.add("card", "program-card");
+    program_container.setAttribute("data-bs-theme", "dark");
 
-            // Add programs to the list
-            data["programs"].forEach(program => {
-                const programItem = document.createElement('div');
-                if (program.isCurrent) {
-                    programItem.classList.add("active");
-                }
-                programItem.classList.add("list-group-item", "list-group-item-action");
-                programItem.setAttribute("program-id", program["id"]);
+    // Initialize program list containers
+    const list_container = document.createElement('div');
+    list_container.classList.add("list-group", "list-group-flush");
 
-                const programHeading = document.createElement('div');
-                programHeading.classList.add("d-flex", "w-100", "justify-content-between");
-                programHeading.innerHTML = `<h5 class="mb-1">${program["name"]}</h5>`;
-
-                const programContent = document.createElement('p');
-                programContent.classList.add("mb-1");
-                programContent.innerHTML = program["description"];
-
-                programItem.append(programHeading);
-                programItem.append(programContent);
-
-                // Add click listener to load the program when clicked
-                programItem.addEventListener('click', function () {
-                    history.pushState(
-                        {
-                            "view": PROGRAM_VIEW,
-                            "program": this.getAttribute("program-id")
-                        },
-                        '',
-                        `#program/${this.firstChild.textContent}`
-                    )
-                    pv_loadProgram(this.getAttribute("program-id"));
-                })
-                list_container.append(programItem);
-            })
-
-            // Append programs to page
-            program_container.append(list_container);
-            pvContent.append(program_container);
+    // Add programs to the list
+    data["programs"].forEach(program => {
+        const programItem = document.createElement('div');
+        if (program.isCurrent) {
+            programItem.classList.add("active");
         }
+        programItem.classList.add("list-group-item", "list-group-item-action");
+        programItem.setAttribute("program-id", program["id"]);
+
+        const programHeading = document.createElement('div');
+        programHeading.classList.add("d-flex", "w-100", "justify-content-between");
+        programHeading.innerHTML = `<h5 class="mb-1">${program["name"]}</h5>`;
+
+        const programContent = document.createElement('p');
+        programContent.classList.add("mb-1");
+        programContent.innerHTML = program["description"];
+
+        programItem.append(programHeading);
+        programItem.append(programContent);
+
+        // Add click listener to load the program when clicked
+        programItem.addEventListener('click', function () {
+            history.pushState(
+                {
+                    "view": PROGRAM_VIEW,
+                    "program": this.getAttribute("program-id")
+                },
+                '',
+                `#program/${this.firstChild.textContent}`
+            )
+            pv_loadProgram(this.getAttribute("program-id"));
+        })
+        list_container.append(programItem);
     })
+
+    // Append programs to page
+    program_container.append(list_container);
+    pvContent.append(program_container);
 }
 
 
@@ -1219,7 +1219,7 @@ function pv_returnAddExerciseForm(row) {
             ""
         )
         
-        const bodypartSelectField = pv_returnBodypartChecklist(bodypartList);
+        const bodypartSelectField = pv_returnBodypartChecklist(bodypartList, "pvBodypartChecklist");
 
         const exDescription = returnTextInputField(
             "Exercise Description",
@@ -1239,9 +1239,9 @@ function pv_returnAddExerciseForm(row) {
     return container;
 }
 
-function pv_returnBodypartChecklist(bodypartList) {
+function pv_returnBodypartChecklist(bodypartList, containerId) {
     const container = document.createElement('div');
-    container.setAttribute("id", "pvBodypartChecklist");
+    container.setAttribute("id", containerId);
     container.innerHTML = "<p>Pick bodypart(s):</p>";
 
     bodypartList.forEach(bodypart => {
@@ -1333,7 +1333,7 @@ function pv_removeExerciseFromWorkout(target) {
     const exerciseId = parent.dataset.exerciseId;
     const workoutId = document.querySelector('#pvExerciseContainer').dataset.workoutId;
     
-    fetch(`exercise/`, {
+    fetch(`workout/exercise/add`, {
         method: 'PUT',
         headers: {
             "X-CSRFToken": CSRF_TOKEN

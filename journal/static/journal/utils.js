@@ -33,28 +33,9 @@ const REMOVE_BUTTON_SVG = `
 
 // load respective views when clicked on the nav
 document.addEventListener('DOMContentLoaded', function() {
-    document.querySelector('#entries').addEventListener('click', () => {
-        if (history.state != null && !window.location.href.endsWith('#entries'))
-            history.pushState({"view": ENTRIES_VIEW}, '', '#entries');
-        loadEntriesView();
-    });
-    document.querySelector('#journal').addEventListener('click', () => {
-        if (history.state != null && !window.location.href.endsWith('#home'))
-            history.pushState({"view": JOURNAL_VIEW}, '', '#home');
-        loadJournalView();
-    });
-    document.querySelector('#exercises').addEventListener('click', () => {
-        if (history.state != null && !window.location.href.endsWith('#exercises/all'))
-            history.pushState({"view": EXERCISES_VIEW}, '', '#exercises/all');
-        loadExerciseView();
-    });
-    document.querySelector('#program').addEventListener('click', () => {
-        if (history.state != null && !window.location.href.endsWith('#program'))
-            history.pushState({"view": PROGRAM_VIEW}, '', '#program');
-        loadProgramView();
-    })
-
+    initializeViewListeners();
     jv_init();
+    en_init();
     ev_init();
     pv_init();
 
@@ -76,6 +57,29 @@ document.addEventListener('DOMContentLoaded', function() {
 
 });
 
+
+function initializeViewListeners() {
+    document.querySelector('#entries').addEventListener('click', () => {
+        if (history.state != null && !window.location.href.endsWith('#entries'))
+            history.pushState({"view": ENTRIES_VIEW}, '', '#entries');
+        loadEntriesView();
+    });
+    document.querySelector('#journal').addEventListener('click', () => {
+        if (history.state != null && !window.location.href.endsWith('#home'))
+            history.pushState({"view": JOURNAL_VIEW}, '', '#home');
+        loadJournalView();
+    });
+    document.querySelector('#exercises').addEventListener('click', () => {
+        if (history.state != null && !window.location.href.endsWith('#exercises/all'))
+            history.pushState({"view": EXERCISES_VIEW}, '', '#exercises/all');
+        loadExerciseView();
+    });
+    document.querySelector('#program').addEventListener('click', () => {
+        if (history.state != null && !window.location.href.endsWith('#program'))
+            history.pushState({"view": PROGRAM_VIEW}, '', '#program');
+        loadProgramView();
+    });
+}
 
 
 function toggleView(viewIndex) {
