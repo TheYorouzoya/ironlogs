@@ -1,12 +1,12 @@
 from django.shortcuts import render
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db import IntegrityError
 from django.shortcuts import HttpResponseRedirect, render
 from django.urls import reverse
-from django.views.decorators.csrf import csrf_exempt
+
 import json
 import datetime
 import itertools
@@ -15,6 +15,10 @@ from .models import *
 
 
 def index(request):
+    """
+    Redirect the incoming request to the main page of the application.
+    If the user isn't authenticated, redirect them to the login page.
+    """
     
     # Authenticated users view their journals
     if request.user.is_authenticated:
@@ -26,6 +30,12 @@ def index(request):
 
 
 def login_view(request):
+    """
+    Log the user into the app with the provided credentials.
+
+    If the user isn't logged in, display the login page. If the credentials are
+    invalid, redirect to the login page with the error message.
+    """
     if request.method == "POST":
 
         # Attempt to sign the user in
@@ -47,11 +57,20 @@ def login_view(request):
 
 
 def logout_view(request):
+    """
+    Logs the user out of the app.
+    """
     logout(request)
     return HttpResponseRedirect(reverse("index"))
 
 
 def register(request):
+    """
+    Registers a new user into the app with the given credentials.
+
+    Upon successful registration, logs the user in and redirects them to the
+    home page.
+    """
     if request.method == "POST":
         username = request.POST["username"]
         email = request.POST["email"]
@@ -86,6 +105,9 @@ def register(request):
 
 @login_required
 def program(request):
+    """
+    Handles CRUD operations related to Programs.
+    """
     # to create a new program object
     if request.method == "POST":
         data = json.loads(request.body)
@@ -109,7 +131,7 @@ def program(request):
             "programId": program.id
         }, status=201)
     
-    # To get the program's details
+    # To retrieve the program's details
     elif request.method == "GET":
         id = request.GET.get("id")
         try:
@@ -123,7 +145,7 @@ def program(request):
             "program": program.serialize()
         }, status=200)
     
-    # to edit a program's name and description
+    # to update a program's name and description
     elif request.method == "PUT":
         data = json.loads(request.body)
         id = data["id"]
@@ -167,9 +189,14 @@ def program(request):
         }, status=200)
 
 
-# returns the program and its workouts for a given program ID
 @login_required
 def programWorkouts(request, programId):
+    """
+    Returns the requested program and all its workouts.
+
+    If the supplied program string is `current`, returns the current program and
+    its workouts instead.
+    """
     if (programId == 'current'):    
         program = request.user.current_program
         if (program is None):
@@ -191,8 +218,13 @@ def programWorkouts(request, programId):
         "workouts": [workout.serialize() for workout in workouts]
         }, safe=False)
 
-
+@login_required
 def currentProgram(request):
+    """
+    Handles retrieval, update, and removal of the current program for the user.
+    """
+
+    # Fetch current program
     if request.method == 'GET':
         try:
             program = request.user.current_program
@@ -205,6 +237,7 @@ def currentProgram(request):
             "program": program.serialize()
         }, status=200)
     
+    # update given program as current program
     elif request.method == 'POST':
         data = json.loads(request.body)
 
@@ -224,6 +257,7 @@ def currentProgram(request):
             "message": f"Successfully added {program.name} as current program!"
         }, status=201)
     
+    # remove current program
     elif request.method == 'DELETE':
         if (request.user.current_program != None):
             name = request.user.current_program.name
@@ -239,9 +273,11 @@ def currentProgram(request):
             }, status=200)
 
 
-# returns a list of all of the user's programs
 @login_required
 def allPrograms(request):
+    """
+    Returns a list of all the user's programs.
+    """
     programs = Program.objects.filter(trainee=request.user)
 
     return JsonResponse({
@@ -255,6 +291,9 @@ def allPrograms(request):
 
 @login_required
 def workout(request):
+    """
+    Handles creating, updating, and deleting Workout objects.
+    """
     # to create a new workout object
     if (request.method == 'POST'):
         data = json.loads(request.body)
@@ -344,12 +383,16 @@ def workout(request):
         }, status=200) 
 
 
-# allows the user to add or remove a day from a workout
 @login_required
 def workoutDay(request, workoutId):
+    """
+    Handles addition or removal of a day from a workout.
+    """
     if (request.method == 'POST'):
+        # adding a day
         deleteFlag = False
     elif (request.method == 'DELETE'):
+        # removing a day
         deleteFlag = True
     else:    
         return JsonResponse({
@@ -393,9 +436,11 @@ def workoutDay(request, workoutId):
     }, status=201)
 
 
-# returns a workout and all of its exercises
 @login_required
 def workoutExercises(request, workoutId):
+    """
+    Returns a workouts and all of its exercises.
+    """
     try:
         workout = Workout.objects.get(id=workoutId, trainee=request.user)
     except Workout.DoesNotExist:
@@ -413,6 +458,9 @@ def workoutExercises(request, workoutId):
 
 @login_required
 def addExerciseToWorkout(request):
+    """
+    Handles addition or deletion of an exercise from a workout.
+    """
     if request.method != 'POST':
         return JsonResponse({
             "error": 'POST request required!'
@@ -438,11 +486,13 @@ def addExerciseToWorkout(request):
         }, status=404)
     
     if (editFlag):
+        # add the exercise to workout
         exercise.workout.add(workout)
-        message = f"Successfully added {exercise.name} to {workout.name} workout!"
+        message = f"Successfully added {exercise.name} to the {workout.name} workout!"
     else:
+        # remove the exercise from workout
         exercise.workout.remove(workout)
-        message = f"Successfully removed {exercise.name} from {workout.name} workout!"
+        message = f"Successfully removed {exercise.name} from the {workout.name} workout!"
 
     return JsonResponse({
         "message": message
@@ -453,9 +503,11 @@ def addExerciseToWorkout(request):
 #                             BODYPART ROUTE
 #==============================================================================#
 
-# returns all the available bodyparts
 @login_required
 def allBodyparts(request):
+    """
+    Returns a list of all bodyparts.
+    """
     bodyparts = BodyPart.objects.all()
     payload = [part.serialize() for part in bodyparts]
 
@@ -470,6 +522,10 @@ def allBodyparts(request):
 
 @login_required
 def entry(request):
+    """
+    Handles editing and deletion of Entries.
+    """
+    # editing an entry
     if request.method == 'PUT':
         data = json.loads(request.body)
 
@@ -490,6 +546,7 @@ def entry(request):
             "message": "Edited entry successfully."
         }, status=201)
     
+    # deleting an entry
     elif request.method == 'DELETE':
         id = request.GET.get("id")
 
@@ -507,10 +564,11 @@ def entry(request):
         }, status=201)
 
 
-# allows the user to add entries in bulk. Usually called from the journal entry view.
-# Does not do partial updates.
 @login_required
 def addEntries(request):
+    """
+    Adds the given group of entries to the database. Does not do partial updates.
+    """
     # Adding entries must be done via POST
     if request.method != 'POST':
         return JsonResponse({
@@ -526,6 +584,7 @@ def addEntries(request):
             "error": "Given date is invalid!"
         }, status=400)
 
+    # list to pool all entries into
     valid_entries = []
 
     for entry in data.get("exercises"):
@@ -556,9 +615,12 @@ def addEntries(request):
 
     return JsonResponse({"message": "Entries added successfully"}, status=201)
 
-# returns all the dates which have a journal entry for a given month
+
 @login_required
 def entries_calendar(request):
+    """
+    Returns a list of all the dates which have a journal entry for a given month.
+    """
     try:
         year = int(request.GET.get("year"))
         month = int(request.GET.get("month"))
@@ -571,7 +633,7 @@ def entries_calendar(request):
         trainee=request.user, 
         timestamp__year=year, 
         timestamp__month=month
-        ).dates('timestamp', 'day')
+        ).dates('timestamp', 'day')     # get only the date column values
     
     payload = [entry.day for entry in dates]
 
@@ -580,10 +642,13 @@ def entries_calendar(request):
     }, status=200)
 
 
-# returns all journal entries within a given start-end date range. If no range is
-# provided, it defaults to the current week starting at monday.
 @login_required
 def entriesInRange(request):
+    """
+    Returns all journal entries within a given date range.
+
+    If no range is provided, return the current week' (starting at Monday) entries.
+    """
     try:
         end_date = returnDate(request.GET.get("endDate"), datetime.date.today())
         start_date = returnDate(request.GET.get("startDate"), end_date - datetime.timedelta(days = end_date.weekday()))
@@ -609,8 +674,10 @@ def entriesInRange(request):
             "payload": payload
         }), status=200)
 
-# return a datetime object for a given date json
 def returnDate(dateJson, default):
+    """
+    Return a datetime object or a given date json in the 'YYYY-MM-DD' format
+    """
     if dateJson:
         data = dateJson.split("-")
         try:
@@ -632,6 +699,13 @@ def returnDate(dateJson, default):
 
 @login_required
 def exercise(request):
+    """
+    Handles retrieval, update, and deletion of Exercises.
+
+    Note: Creation is done via the bulk update view, i.e., the addExercises() method
+    """
+
+    # retrieving an exercise
     if request.method == 'GET':
         id = request.GET.get("id")
         if (not (id.strip())):
@@ -650,9 +724,9 @@ def exercise(request):
             "exercise": exercise.serialize()
         }, status=200)
     
+    # editing an exercise
     elif request.method == 'PUT':
         data = json.loads(request.body)
-        print(data)
         id = data["id"]
 
         try:
@@ -696,7 +770,7 @@ def exercise(request):
         }, status=201)
 
 
-    # to delete an exercise object
+    # deleting an exercise object
     elif request.method == 'DELETE':
         id = request.GET.get("id")
 
@@ -718,6 +792,13 @@ def exercise(request):
     
 @login_required
 def filterExercises(request):
+    """
+    Returns a list of exercises filtered according to provided Bodypart, Workout,
+    or Program data.
+
+    Also accepts a page number and returns the contents accordingly. The filters
+    can be stacked on top of each other creating an AND effect.
+    """
     if request.method != 'GET':
         return JsonResponse({
             "error": "GET request only!"
@@ -725,6 +806,7 @@ def filterExercises(request):
 
     exercises = Exercise.objects.filter(trainee=request.user).order_by('name')
     
+    # filter bodyparts
     partID = request.GET.get("bodypart")
     if partID:
         try:
@@ -735,6 +817,7 @@ def filterExercises(request):
             }, status=404)
         exercises = exercises.filter(body_part=bodypart)
 
+    # filter workouts
     workoutID = request.GET.get("workout")
     if workoutID:
         try:
@@ -745,6 +828,7 @@ def filterExercises(request):
             }, status=404)
         exercises = exercises.filter(workout=workout)
 
+    # filter programs
     programID = request.GET.get("program")
     if programID:
         try:
@@ -770,7 +854,7 @@ def filterExercises(request):
         page = paginator.page(pageNum)
     except django.core.paginator.EmptyPage:
         return JsonResponse({
-            "error": "Requested page number is either empty or invalid"
+            "error": "Requested page number is either empty or invalid!"
         }, status=400)
 
     payload = [exercise.table_serialize() for exercise in page.object_list]
@@ -782,10 +866,11 @@ def filterExercises(request):
     }, status=200)
 
 
-
-# returns all the journal entries for a given exercise
 @login_required
 def exerciseEntries(request, exerciseId):
+    """
+    Returns all associated entries for a given exercise.
+    """
     try:
         exercise = Exercise.objects.get(id=exerciseId, trainee=request.user)
     except Exercise.DoesNotExist:
@@ -801,9 +886,12 @@ def exerciseEntries(request, exerciseId):
     }, safe=False)
 
 
-# allows the user to add exercises in bulk
 @login_required
 def addExercises(request):
+    """
+    Adds the given collection of exercises to the database. Does not do partial
+    updates.
+    """
     if (request.method != 'POST'):
         return JsonResponse({
             "error": "Post request required!"
@@ -862,6 +950,9 @@ def addExercises(request):
 
 @login_required
 def searchExercises(request):
+    """
+    Returns relevant exercises (upto 7) matching the given exercise name search query.
+    """
     if (request.method == 'GET'):
         searchQuery = request.GET.get("q")
         searchQuery = searchQuery.strip()
@@ -881,6 +972,10 @@ def searchExercises(request):
 
 @login_required
 def searchWorkoutAndExercises(request):
+    """
+    Returns relevant exercises and workouts (upto 4 each) matching the given
+    name search query.
+    """
     if (request.method == 'GET'):
         searchQuery = request.GET.get("q")
         searchQuery = searchQuery.strip()

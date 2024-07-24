@@ -1,7 +1,7 @@
-const JOURNAL_VIEW = 0;
-const PROGRAM_VIEW = 1;
-const EXERCISES_VIEW = 2;
-const ENTRIES_VIEW = 3;
+const JOURNAL_VIEW      = 0;
+const PROGRAM_VIEW      = 1;
+const EXERCISES_VIEW    = 2;
+const ENTRIES_VIEW      = 3;
 
 const CLOSE_BUTTON_SVG = `
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" style="min-width: 24px"  fill="currentColor" class="bi bi-x-circle" viewBox="0 0 16 16">
@@ -31,14 +31,15 @@ const REMOVE_BUTTON_SVG = `
     </svg>
 `;
 
-// load respective views when clicked on the nav
 document.addEventListener('DOMContentLoaded', function() {
+    // initialize all views and their starting listeners
     initializeViewListeners();
     jv_init();
     en_init();
     ev_init();
     pv_init();
 
+    // if a history state exists
     if (history.state != null) {
         processHistory(history.state);
     } else {
@@ -54,26 +55,35 @@ document.addEventListener('DOMContentLoaded', function() {
             loadJournalView();
         }
     })
-
 });
 
 
+/**
+ * Initializes all the navbar listeners to toggle the respective views.
+ */
 function initializeViewListeners() {
+    // Entry View Listener
     document.querySelector('#entries').addEventListener('click', () => {
         if (history.state != null && !window.location.href.endsWith('#entries'))
             history.pushState({"view": ENTRIES_VIEW}, '', '#entries');
         loadEntriesView();
     });
+
+    // Journal View Listener
     document.querySelector('#journal').addEventListener('click', () => {
         if (history.state != null && !window.location.href.endsWith('#home'))
             history.pushState({"view": JOURNAL_VIEW}, '', '#home');
         loadJournalView();
     });
+    
+    // Exercise View Listener
     document.querySelector('#exercises').addEventListener('click', () => {
         if (history.state != null && !window.location.href.endsWith('#exercises/all'))
             history.pushState({"view": EXERCISES_VIEW}, '', '#exercises/all');
         loadExerciseView();
     });
+    
+    // Program View Listener
     document.querySelector('#program').addEventListener('click', () => {
         if (history.state != null && !window.location.href.endsWith('#program'))
             history.pushState({"view": PROGRAM_VIEW}, '', '#program');
@@ -82,6 +92,21 @@ function initializeViewListeners() {
 }
 
 
+/**
+ * Toggles the given view's visibility to "block" and hides the remaining views.
+ * 
+ * The views are listed as constants with the following values:
+ * 
+ *  JOURNAL_VIEW = 0
+ *  
+ *  PROGRAM_VIEW = 1
+ *  
+ *  EXERCISES_VIEW = 2
+ *  
+ *  ENTRIES_VIEW = 3
+ * 
+ * @param {Number} viewIndex the view index as stated above
+ */
 function toggleView(viewIndex) {
     var viewValues = ["none", "none", "none", "none"];
     viewValues[viewIndex] = "block";
@@ -93,11 +118,24 @@ function toggleView(viewIndex) {
 }
 
 
+/**
+ * Displays the given message as a Bootstrap toast.
+ * 
+ * If the successFlag is set to True, the toast color is green. Otherise, the 
+ * color is red, indicating an error or failure.
+ * 
+ * The toast is always displayed in the top middle portion of the screen. The user can
+ * click the 'X' to close the toast.
+ * 
+ * @param {String}  message      the message to be displayed
+ * @param {Boolean} successFlag  whether the message is a success message or an error
+ */
 function displayMessage(message, successFlag) {
     const message_container = document.querySelector('#message');
     // Clear any previous messages
     message_container.innerHTML = "";
 
+    // initialize message div
     const messageDiv = document.createElement('div');
     messageDiv.classList.add(
         "toast",
@@ -110,40 +148,62 @@ function displayMessage(message, successFlag) {
     messageDiv.setAttribute("id", "liveToast");
     messageDiv.setAttribute("autohide", "false");
 
+    // set color according to successFlag
     if (successFlag) {
         messageDiv.classList.add("text-bg-success");
     } else {
         messageDiv.classList.add("text-bg-danger");
     }
 
-    const c1 = document.createElement('div');
-    c1.classList.add("d-flex");
-    const c2 = document.createElement('div');
-    c2.classList.add("toast-body");
-    c2.textContent = message;
+    // initialize toast body
+    const wrapper = document.createElement('div');
+    wrapper.classList.add("d-flex");
+    const toastBody = document.createElement('div');
+    toastBody.classList.add("toast-body");
+    toastBody.textContent = message;
 
+    // initialize close button
     const closeBtn = document.createElement('button');
     closeBtn.classList.add("btn-close", "btn-close-white", "me-2", "m-auto");
     closeBtn.setAttribute("type", "button");
     closeBtn.setAttribute("data-bs-dismiss", "toast");
     closeBtn.setAttribute("aria-label", "Close");
     
-    c1.append(c2, closeBtn);
-    messageDiv.append(c1);
+    wrapper.append(toastBody, closeBtn);
+    messageDiv.append(wrapper);
     message_container.append(messageDiv);
 
+    // display toast to user
     bootstrap.Toast.getOrCreateInstance(messageDiv).show();
 }
 
+
+/**
+ * Returns an HTML text input field initialized with the given parameters.
+ * 
+ * The assembly consists of a text input field (either regular or a textArea), an
+ * accomplanying label, a help text underneath stating what is required, and an
+ * optional pre-fill value.
+ * 
+ * @param   {String}      labelText      text to be displayed above the input field
+ * @param   {String}      fieldId        ID to be set on the input field
+ * @param   {String}      helpText       text to be displayed below the input field
+ * @param   {Boolean}     textAreaFlag   whether the input field is a textarea or not
+ * @param   {String}      preFillValue   text to be populated into the input field
+ * @returns {HTMLElement}                a completed input field assembly as described above
+ */
 function returnTextInputField(labelText, fieldId, helpText, textAreaFlag, preFillValue) {
+    // initialize main container
     const container = document.createElement('div');
     container.classList.add("mb-3");
 
+    // initialize label
     const label = document.createElement('label');
     label.classList.add("form-label");
     label.setAttribute("for", fieldId);
     label.textContent = labelText;
 
+    // initialize input field based on textAreaFlag
     var input;
     if (textAreaFlag) {
         input = document.createElement('textarea');
@@ -155,17 +215,31 @@ function returnTextInputField(labelText, fieldId, helpText, textAreaFlag, preFil
     input.classList.add("form-control");
     input.setAttribute("id", fieldId);
     input.setAttribute("aria-describedby", fieldId + "-HelpBlock");
+    // fill input field with pre-fill value
     input.value = preFillValue;
 
+    // initialize help text
     const help_block = document.createElement('div');
     help_block.classList.add("form-text");
     help_block.setAttribute("id", fieldId + "-HelpBlock");
     help_block.textContent = helpText;
 
+    // assemble and return
     container.append(label, input, help_block);
     return container;
 }
 
+/**
+ * Return a Bootstrap button with the given specifications.
+ * 
+ * The passed listener function is called as is without any arguments. The caller is
+ * advised to assign an ID attribute to use the button as an anchor point.
+ * 
+ * @param {String}   buttonType      button outline type according to Bootstrap spec
+ * @param {String}   buttonText      text to be displayed on the button
+ * @param {Function} buttonListener  function which executes when the button is clicked
+ * @returns 
+ */
 function returnButton(buttonType, buttonText, buttonListener) {
     const button = document.createElement('div');
     button.classList.add("btn", "btn-outline-" + buttonType);
@@ -176,6 +250,9 @@ function returnButton(buttonType, buttonText, buttonListener) {
     return button;
 }
 
+/**
+ * Clears any pending messages/toasts in the message container.
+ */
 function clearMessages() {
     const message_container = document.querySelector('#message');
     // Clear any previous messages
@@ -183,11 +260,27 @@ function clearMessages() {
 }
 
 
+/**
+ * Returns an autocomplete search bar where the user can lookup all their exercises.
+ * 
+ * Displays the seven most relevant search results underneath the search bar. Clicking
+ * on a result fires up the provided function with the target result element as a
+ * parameter.
+ * 
+ * @param {String}   formId            div in which to dump the search results in
+ * @param {Function} listenerFunction  function which gets called when a search result
+ *                                     is clicked
+ * @returns {HTMLElement}   the search bar assembly as described above
+ * @see {@link util_fetchExerciseSearchResults} for how the exercises are searched and
+ * populated.
+ */
 function util_returnAutocompleteExerciseSearchForm(formId, listenerFunction) {
+    // initalize form
     const searchForm = document.createElement('form');
     searchForm.classList.add("row", "form-control");
     searchForm.textContent = "Lookup Exercise:";
 
+    // initialize input field
     const searchInput = document.createElement('input');
     searchInput.classList.add("form-control");
     searchInput.setAttribute("type", "text");
@@ -195,62 +288,97 @@ function util_returnAutocompleteExerciseSearchForm(formId, listenerFunction) {
     searchInput.setAttribute("placeholder", "Search Exercise");
     searchInput.setAttribute("aria-label", "exercise search bar");
     
-    searchInput.addEventListener('keyup', function () {
-        util_fetchExerciseSearchResults(this.value, formId, listenerFunction);
-    })
-
+    // initialize search result div
     const searchResults = document.createElement('div');
     searchResults.setAttribute("id", formId);
+
+    // fetch exercise results as the user types a query
+    searchInput.addEventListener('keyup', function () {
+        util_fetchExerciseSearchResults(this.value, formId, listenerFunction);
+    });
 
     searchForm.append(searchInput, searchResults);
     return searchForm;
 }
 
 
-function util_fetchExerciseSearchResults(searchQuery, formId, listenerFunction) {
-    fetch(`search/exercises/?q=${searchQuery}`)
-    .then(response => response.json())
-    .then(data => {
-        if (data.error) {
-            displayMessage(data.error, false);
-        } else {
-            const container = document.getElementById(formId);
-            const results = data["results"]
-            const resultList = document.createElement('ul');
-            resultList.classList.add("list-group", "list-group-flush");
+/**
+ * Fetches the 7 most relevant exercises which match the given search query and
+ * populates them into the given ID's container.
+ * 
+ * On clicking a search result, the provided listenr function is called with the
+ * clicked search result as a parameter.
+ * 
+ * @param {String}   searchQuery        the query string to search exercises with
+ * @param {String}   formId             the ID of the container where the results
+ *                                      need to be displayed
+ * @param {Function} listenerFunction   the function which gets called when a search
+ *                                      result is clicked
+ * 
+ */
+async function util_fetchExerciseSearchResults(searchQuery, formId, listenerFunction) {
+    // fetch relevant exercises from the server
+    const apiResponse = await fetch(`search/exercises/?q=${searchQuery}`);
+    const data = await apiResponse.json();
+    
+    // bail if an error occurs
+    if (data.error) {
+        displayMessage(data.error, false);
+        return;
+    }
 
-            results.forEach(exercise => {
-                const item = document.createElement('li');
-                item.classList.add("list-group-item", "list-group-item-action");
-                item.dataset.exerciseId = exercise["id"];
-                item.textContent = exercise["name"];
-                item.addEventListener('click', function () {
-                    container.parentNode.getElementsByTagName('input')[0].value = "";
-                    listenerFunction(this);
-                })
-                resultList.append(item);
-            })
+    // initialize result list
+    const container = document.getElementById(formId);
+    const results = data["results"]
+    const resultList = document.createElement('ul');
+    resultList.classList.add("list-group", "list-group-flush");
 
-            container.innerHTML = "";
-            container.append(resultList);
-        }
+    // populate list with exercise results
+    results.forEach(exercise => {
+        const item = document.createElement('li');
+        item.classList.add("list-group-item", "list-group-item-action");
+        item.dataset.exerciseId = exercise["id"];
+        item.textContent = exercise["name"];
+        item.addEventListener('click', function () {
+            // empty serach bar once an exercise is clicked
+            container.parentNode.getElementsByTagName('input')[0].value = "";
+            listenerFunction(this);
+        })
+        resultList.append(item);
     })
+
+    // empty any previous results
+    container.innerHTML = "";
+    container.append(resultList);
 }
 
 // Create numeric input fields for an exercise
+/**
+ * Returns a numeric input field to be used inside an exercise entry form.
+ * 
+ * This function is primarily called everytime an exercise entry form is created.
+ * 
+ * @param {String} fieldType  indicates the type of field to generate. Also used as
+ *                            placeholder for the input field. 
+ * @returns {HTMLElement}     the input field assembly as described above
+ */
 function util_returnExerciseInputFieldsForm(fieldType) {
+    // initialize input field container
     const container = document.createElement('div');
     container.classList.add("col");
 
+    // initialize input field
     const setField = document.createElement('input');
     setField.classList.add("form-control", fieldType);
     setField.setAttribute("type", "number");
     setField.setAttribute("min", 0);
+
     if (fieldType === "Intensity") {
+        // if fieldType is intensity, allow decimal input in increments of 0.5
         setField.setAttribute("step", "0.5");
         setField.setAttribute("placeholder", "Weight");
     } else {
-        setField.setAttribute("max", 100);
+        // otherwise, only positive integers are allowed
         setField.setAttribute("step", "1");
         setField.setAttribute("placeholder", fieldType);
     }
@@ -260,6 +388,14 @@ function util_returnExerciseInputFieldsForm(fieldType) {
 }
 
 
+/**
+ * Validates the given elements by checking that they are not empty.
+ * 
+ * This function is only called upon submitting an exercise entry form.
+ * 
+ * @param {HTMLElement[]} elements array of elements to be validated
+ * @returns {Boolean} `true` if the elements are non-empty, `false` otherwise
+ */
 function util_validateEntries(elements) {
     flag = true;
     elements.forEach(container => {
@@ -276,7 +412,16 @@ function util_validateEntries(elements) {
     return flag;
 }
 
+/**
+ * Attempts to submit the given exercise entries on the given date to server.
+ * 
+ * Displays a success or failure message to the user upon completion.
+ * 
+ * @param {Exercise[]} entries an array of exercise entries
+ * @param {String}     date    a date string formatted as 'YYYY-MM-DD'
+ */
 async function util_submitEntries(entries, date) {
+    // attempt to submit
     let apiResponse = await fetch('entries/add', {
         method: 'POST',
         headers: {
@@ -289,6 +434,8 @@ async function util_submitEntries(entries, date) {
         })
     });
     let data = await apiResponse.json();
+
+    // display appropriate error/success message
     if (data.error) {
         displayMessage(data.error, false);
     } else {
@@ -296,89 +443,132 @@ async function util_submitEntries(entries, date) {
     }
 }
 
-
+/**
+ * Returns an autocomplete search bar where the user can lookup all their exercises
+ * and workouts.
+ * 
+ * Displays the four most relevant search results (for each workout/exercise) underneath
+ * the search bar. Clicking on a result invokes the provided function with the 
+ * target result element as a parameter.
+ * 
+ * This function works exactly the same way as the {@link util_returnAutocompleteExerciseSearchForm}
+ * function except it fetches workouts as well as exercises.
+ * 
+ * @param {String}   formId            div in which to dump the search results in
+ * @param {Function} listenerFunction  function which gets called when a search result
+ *                                     is clicked
+ * @returns {HTMLElement}   the search bar assembly as described above
+ * @see {@link util_fetchWorkoutExerciseSearchResults} for how the workouts and exercises
+ * are searched and populated.
+ */
 function util_returnAutocompleteWorkoutExerciseSearchForm(formId, formListener) {
+    // initialize form container
     const searchForm = document.createElement('form');
     searchForm.classList.add("row", "form-control");
     searchForm.textContent = "Add Workout or Exercise:";
 
+    // initialize input field
     const searchInput = document.createElement('input');
     searchInput.classList.add("form-control");
     searchInput.setAttribute("type", "text");
     searchInput.setAttribute("autocomplete", "off");
     searchInput.setAttribute("placeholder", "Search");
     searchInput.setAttribute("aria-label", "workout and exercise search bar");
-    
-    searchInput.addEventListener('keyup', function () {
-        util_fetchWorkoutExerciseSearchResults(this.value, formId, formListener);
-    });
 
     const searchResults = document.createElement('div');
     searchResults.setAttribute("id", formId);
+    
+    searchInput.addEventListener('keyup', function () {
+        // fetch search results as the user types in their search query
+        util_fetchWorkoutExerciseSearchResults(this.value, formId, formListener);
+    });
 
     searchForm.append(searchInput, searchResults);
     return searchForm;
 }
 
 
-function util_fetchWorkoutExerciseSearchResults(searchQuery, formId, formListener) {
-    fetch(`search/workoutandexercises/?q=${searchQuery}`)
-    .then(response => response.json())
-    .then(data => {
-        if (data.error) {
-            displayMessage(data.error, false);
-        } else {
-            const container = document.getElementById(formId);
-            const workouts = data["workouts"];
-            const exercises = data["exercises"];
+async function util_fetchWorkoutExerciseSearchResults(searchQuery, formId, formListener) {
+    // fetch data from the server
+    const apiResponse = await fetch(`search/workoutandexercises/?q=${searchQuery}`);
+    const data = await apiResponse.json();
+    
+    // bail if an error occurs
+    if (data.error) {
+        displayMessage(data.error, false);
+        return;
+    }
 
-            const resultList = document.createElement('ul');
-            resultList.classList.add("list-group", "list-group-flush");
+    // initialize form container, data fields, and result list
+    const container = document.getElementById(formId);
+    const workouts = data["workouts"];
+    const exercises = data["exercises"];
+    const resultList = document.createElement('ul');
+    resultList.classList.add("list-group", "list-group-flush");
 
-            if (workouts.length > 0) {
-                const header = document.createElement('div');
-                header.textContent = "Workouts:";
-                resultList.append(header);
+    // if results contain more than one workout
+    if (workouts.length > 0) {
+        // initialize workout header partition
+        const header = document.createElement('div');
+        header.textContent = "Workouts:";
+        resultList.append(header);
 
-                workouts.forEach(workout => {
-                    const item = document.createElement('li');
-                    item.classList.add("list-group-item", "list-group-item-action");
-                    item.dataset.id = workout["id"];
-                    item.textContent = workout["name"];
-                    item.addEventListener('click', function () {
-                        container.parentNode.getElementsByTagName('input')[0].value = "";
-                        formListener(this, true);
-                    })
-                    resultList.append(item);
-                })
-            }
+        // append all the workouts
+        workouts.forEach(workout => {
+            const item = document.createElement('li');
+            item.classList.add("list-group-item", "list-group-item-action");
+            item.dataset.id = workout["id"];
+            item.textContent = workout["name"];
+            item.addEventListener('click', function () {
+                // empty the search bar if a workout is clicked
+                container.parentNode.getElementsByTagName('input')[0].value = "";
+                formListener(this, true);
+            })
+            resultList.append(item);
+        })
+    }
 
-            if (exercises.length > 0) {
-                const header = document.createElement('div');
-                header.textContent = "Exercises:";
-                resultList.append(header);
+    // if results contain more than one exercise
+    if (exercises.length > 0) {
+        // initialize exercise header partition
+        const header = document.createElement('div');
+        header.textContent = "Exercises:";
+        resultList.append(header);
 
-                exercises.forEach(exercise => {
-                    const item = document.createElement('li');
-                    item.classList.add("list-group-item", "list-group-item-action");
-                    item.dataset.id = exercise["id"];
-                    item.textContent = exercise["name"];
-                    item.addEventListener('click', function () {
-                        container.parentNode.getElementsByTagName('input')[0].value = "";
-                        formListener(this, false);
-                    })
-                    resultList.append(item);
-                })
-            }
+        // append all the exercises
+        exercises.forEach(exercise => {
+            const item = document.createElement('li');
+            item.classList.add("list-group-item", "list-group-item-action");
+            item.dataset.id = exercise["id"];
+            item.textContent = exercise["name"];
+            item.addEventListener('click', function () {
+                // empty the search bar if an exercise is clicked
+                container.parentNode.getElementsByTagName('input')[0].value = "";
+                formListener(this, false);
+            })
+            resultList.append(item);
+        })
+    }
 
-            container.innerHTML = "";
-            container.append(resultList);
-        }
-    })
+    // empty any previous search results
+    container.innerHTML = "";
+    container.append(resultList);
 }
 
 
+/**
+ * Returns an exercise entry form for the given exercise.
+ * 
+ * Attaches the given listener to the close button which, when clicked, removes
+ * the form from the DOM.
+ * 
+ * @param {Exercise} exercise             the form's exercise object
+ * @param {Function} closeButtonListener  function which is invoked when the close
+ *                                        button is clicked
+ * @returns {HTMLElement} the exercise entry form
+ */
 function util_returnExerciseEntryForm(exercise, closeButtonListener) {
+    // initialize containers
     const mainCont = document.createElement('div');
     mainCont.classList.add("row", "form-control", "d-flex");
 
@@ -388,6 +578,7 @@ function util_returnExerciseEntryForm(exercise, closeButtonListener) {
     const buttonWrapper = document.createElement('div');
     buttonWrapper.classList.add("col-1");
 
+    // initialize close button
     const closeButton = document.createElement('div');
     closeButton.classList.add("d-flex", "justify-content-end");
     closeButton.innerHTML = CLOSE_BUTTON_SVG;
@@ -398,6 +589,7 @@ function util_returnExerciseEntryForm(exercise, closeButtonListener) {
 
     buttonWrapper.append(closeButton);
 
+    // initialize fields
     const exNameLabel = document.createElement('div');
     exNameLabel.textContent = `${exercise.name}:`;
 
@@ -405,6 +597,7 @@ function util_returnExerciseEntryForm(exercise, closeButtonListener) {
     exerciseForm.dataset.exerciseId = exercise.id;
     exerciseForm.classList.add("row", "exercise-form");
 
+    // fetch relevant input fields
     exerciseForm.append(util_returnExerciseInputFieldsForm("Sets"));
     exerciseForm.append(util_returnExerciseInputFieldsForm("Reps"));
     exerciseForm.append(util_returnExerciseInputFieldsForm("Intensity"));
@@ -417,12 +610,21 @@ function util_returnExerciseEntryForm(exercise, closeButtonListener) {
 }
 
 
+/**
+ * Attempts to submit all entry forms within the given container.
+ * 
+ * Entry forms are first validated to determine that they are non-empty.
+ * 
+ * @param {String} formId ID of the form container
+ * @returns {Boolean} `true` on a successful submission, `false` otherwise
+ */
 async function util_submitEntriesForm(formId) {
+    // initailize form container and fetch all forms
     const formContainer = document.getElementById(formId);
     const forms = formContainer.querySelectorAll('form');
 
-    var valid = true;
-
+    let valid = true;
+    // validate each form
     forms.forEach(container => {
         sets = container.querySelector('.Sets');
         reps = container.querySelector('.Reps');
@@ -431,9 +633,11 @@ async function util_submitEntriesForm(formId) {
         valid = util_validateEntries([sets, reps, intensity]);
     })
 
+    // if all the forms were valid
     if (valid) {
         data = [];
         forms.forEach(container => {
+            // collect form data into an exercise object
             var exercise = new Object();
             exercise.id = container.dataset.exerciseId;
             exercise.sets = container.querySelector('.Sets').value;
@@ -442,6 +646,7 @@ async function util_submitEntriesForm(formId) {
             data.push(exercise);
         })
 
+        // submit data to server
         let submission = await util_submitEntries(data, formContainer.dataset.day);
         return true;
         

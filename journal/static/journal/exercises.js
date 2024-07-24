@@ -92,8 +92,8 @@ async function ev_loadAllExercisesTable() {
  */
 async function ev_loadExerciseTableWithGivenQuery(filterQuery, pageNum) {
     // fetch exercise data from the server
-    const apiRepsosne = await fetch(`exercises/filter/?pageNum=${pageNum}&${filterQuery}`);
-    const data = await apiRepsosne.json();
+    const apiResponse = await fetch(`exercises/filter/?pageNum=${pageNum}&${filterQuery}`);
+    const data = await apiResponse.json();
     
     // display error message if something goes wrong and bail
     if (data.error) {
@@ -603,7 +603,7 @@ async function ev_submitEditExerciseForm() {
     }
 
     // attempt to submit form
-    const apiRepsosne = await fetch('exercise/',{
+    const apiResponse = await fetch('exercise/',{
         method: 'PUT',
         headers: {
             "X-CSRFToken": CSRF_TOKEN
@@ -617,7 +617,7 @@ async function ev_submitEditExerciseForm() {
         })
     });
 
-    const data = await apiRepsosne.json();
+    const data = await apiResponse.json();
     
     if (data.error) {   // if submission fails
         displayMessage(data.error, false);
