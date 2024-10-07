@@ -1,10 +1,16 @@
-let jvHeader, jvWorkouts, jvSearchBar, jvEntryForms, jvSubmit;
+let jvContainer, 
+    jvHeader, 
+    jvWorkouts, 
+    jvSearchBar,
+    jvEntryForms, 
+    jvSubmit, jvLoaded, workoutToday;
 
 /**
  * Initializes the Journal View container variables and the Add Entry button
  * listener.
  */
 function jv_init() {
+    jvContainer = document.querySelector('#journal-view');
     jvHeader = document.querySelector('#jvHeader');
     jvWorkouts = document.querySelector('#jvWorkouts');
     jvSearchBar = document.querySelector('#jvSearchBar');
@@ -18,6 +24,12 @@ function jv_init() {
             loadEntriesView();
         };
     })
+
+    workoutToday = "";
+
+    jvLoaded = new Event('journalViewLoaded');
+    jvContainer.addEventListener('journalViewLoaded', an_setupJournalViewAnimations);
+
 };
 
 /**
@@ -29,11 +41,30 @@ function jv_init() {
  */
 async function loadJournalView() {
     toggleView(JOURNAL_VIEW);
+    hideJournalView();
     emptyJournalView();
+    
     // hide Add Entry button by default
     jvSubmit.style.display = "none";
 
     await jv_loadCurrentProgramWorkouts();
+    if (workoutToday != "") {
+        const forms = await jv_returnWorkoutExerciseForms(workoutToday);
+        forms.forEach(entryForm => jvEntryForms.append(entryForm));
+    }
+    jv_loadSearchBar();
+
+    // broadcast journal load event
+    jvContainer.dispatchEvent(jvLoaded);
+    showJournalView();
+}
+
+function hideJournalView() {
+    jvContainer.style.display = "none";
+}
+
+function showJournalView() {
+    jvContainer.style.display = "block";
 }
 
 /**
@@ -43,6 +74,17 @@ function emptyJournalView() {
     jvHeader.innerHTML = "";
     jvWorkouts.innerHTML = "";
     jvSearchBar.innerHTML = "";
+    jvEntryForms.innerHTML = "";
+}
+
+
+const emptyCardRowListener = function () {
+    const parent = this.parentNode;
+    const active = parent.getElementsByClassName('active');
+    if (active.length > 0) {
+        active[0].classList.remove("active");
+    }
+    this.classList.add("active");
     jvEntryForms.innerHTML = "";
 }
 
@@ -56,6 +98,7 @@ function emptyJournalView() {
  * the corresponding day is labeled as a Rest Day.
  */
 async function jv_loadCurrentProgramWorkouts() {
+    jvEntryForms.innerHTML = "";
     // fetch current program data from the server
     const apiResponse = await fetch(`program/current/workouts`)
     const data = await apiResponse.json();
@@ -88,9 +131,20 @@ async function jv_loadCurrentProgramWorkouts() {
     workoutCard.setAttribute("data-bs-theme", "dark");
 
     const cardHeader = document.createElement('div');
-    cardHeader.classList.add("card-header");
+    cardHeader.classList.add("card-header", "row");
     // populate card header with program name
-    cardHeader.innerHTML = program.name;            
+
+    const programTitle = document.createElement('div');
+    programTitle.innerHTML = program.name;
+    programTitle.classList.add("col-9");
+    
+    jvWorkouts.dataset.toggle = "true";
+
+    const listToggle = document.createElement('div');
+    listToggle.classList.add("d-flex", "justify-content-end", "col-3", "workout-card-toggle");
+    listToggle.innerHTML = CARET_DOWN_SVG;
+    listToggle.querySelector('svg').addEventListener('click', jv_toggleWorkoutCardVisibility);
+    cardHeader.append(programTitle, listToggle);
 
     workoutCard.append(cardHeader);
 
@@ -101,29 +155,33 @@ async function jv_loadCurrentProgramWorkouts() {
     // template list to be populated later
     const workoutListTemplate = [];
 
-    // pre-populate template list with all Rest Days entries
-    ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].forEach(day => {
-        const row = document.createElement('button');
-        row.classList.add("list-group-item", "list-group-item-action");
-        row.innerHTML = day + " - Rest";
-        workoutListTemplate.push(row);
-    });
-
-    // pre-populate header
-    jvHeader.innerHTML = `<div class="display-6">Today: Rest</div>`;
-    jvEntryForms.dataset.day = "";
-
     // fetch today's day and convert it to python day value
     let today = new Date();
     today = today.getDay();
     today = today == 0 ? 6 : today - 1;
+
+    // pre-populate template list with all Rest Days entries
+    ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].forEach(day => {
+        const row = document.createElement('button');
+        row.classList.add("list-group-item", "list-group-item-action", "fade-out");
+        row.innerHTML = day + " - Rest";
+        row.addEventListener('click', emptyCardRowListener);
+        workoutListTemplate.push(row);
+    });
+
+    workoutListTemplate[today].classList.add('active', 'fade-in');
+    workoutListTemplate[today].classList.remove('fade-out');
+
+    // pre-populate header
+    jvHeader.innerHTML = `<div class="display-6">Today: Rest</div>`;
+    jvEntryForms.dataset.day = "";
 
     workouts.forEach(workout => {   // for each workout
         workout["days"].forEach(dayObj => { // for each day in workout
             const day = dayObj["dayNum"];
             const dayName = dayObj["day"];
             // update template list with workout details
-            workoutListTemplate[day].innerHTML = dayName + " - " + workout["name"];
+            workoutListTemplate[day].textContent = dayName + " - " + workout["name"];
             workoutListTemplate[day].dataset.workoutId = workout["id"];
             workoutListTemplate[day].setAttribute("id", "jvWorkoutRow" + day);
             
@@ -132,13 +190,10 @@ async function jv_loadCurrentProgramWorkouts() {
                 workoutListTemplate[day].classList.add("active");
                 jvHeader.innerHTML = `<div class="display-6">Today's Workout: ${workout["name"]}</div>`;
                 jvEntryForms.innerHTML = "";
-
-                // fetch list of entry forms for the workout
-                jv_returnWorkoutExerciseForms(workout["id"]).then(forms => {
-                    // then append each form to the entry form container
-                    forms.forEach(entryForm => jvEntryForms.append(entryForm));
-                });
+                workoutToday = workout["id"];
             }
+
+            workoutListTemplate[day].removeEventListener('click', emptyCardRowListener);
 
             // clicking on a workout in the card loads all exercise forms for that
             // workout instead
@@ -166,7 +221,29 @@ async function jv_loadCurrentProgramWorkouts() {
 
     workoutCard.append(workoutList);
     jvWorkouts.append(workoutCard);
-    jv_loadSearchBar();
+}
+
+
+function jv_toggleWorkoutCardVisibility() {
+    const cardItems = jvWorkouts.querySelectorAll('.list-group-item');
+    let toggleState = jvWorkouts.dataset.toggle;
+
+    if (toggleState == "true") {
+        cardItems.forEach(item => { 
+            item.classList.remove('fade-out');
+            item.classList.add('fade-in');
+            item.style.display = "block";
+        });
+        jvWorkouts.dataset.toggle = "false";
+    } else {
+        cardItems.forEach(item => {
+            item.classList.remove('fade-in');
+            if (!item.classList.contains('active')) {
+                item.classList.add('fade-out');
+            }
+        });
+        jvWorkouts.dataset.toggle = "true";
+    }
 }
 
 /**
@@ -176,6 +253,9 @@ async function jv_loadCurrentProgramWorkouts() {
  * @param {HTMLElement} target the clicked card row
  */
 function jv_cardClickListener (target) {
+    // empty container
+    jvEntryForms.innerHTML = "";
+    
     // fetch workout ID
     const parent = target.parentNode;
     const workoutId = target.dataset.workoutId;
@@ -187,8 +267,6 @@ function jv_cardClickListener (target) {
     }
     target.classList.add("active");
 
-    // empty container
-    jvEntryForms.innerHTML = "";
     // fetch the list of entry forms for the workout
     jv_returnWorkoutExerciseForms(workoutId).then(forms => {
         // then append each form to the jvEntryForms container
@@ -209,7 +287,8 @@ function jv_entryFormCloseButtonListener (target) {
     if (element.parentNode.childElementCount <= 1) {
         jvSubmit.style.display = "none";
     }
-    element.remove();
+    element.classList.add("fade-out");
+    setTimeout(() => { element.remove(); }, 300);
 }
 
 
@@ -236,14 +315,10 @@ async function jv_returnWorkoutExerciseForms(workoutId) {
     
     // display the submit button
     jvSubmit.style.display = "flex";
-    
-    let entryList = [];
-    exercises.forEach(exercise => {
-        // fetch entry form and add to list
-        const entry = util_returnExerciseEntryForm(exercise, jv_entryFormCloseButtonListener);
-        entryList.push(entry);
-    });
-    return entryList;
+
+    // convert exercise data to entry forms
+    const forms = util_returnBulkExerciseEntryForms(exercises, jv_entryFormCloseButtonListener);
+    return forms;
 }
 
 /**
@@ -301,11 +376,8 @@ async function jv_searchBarListener(target, workoutFlag) {
         }
 
         const exercises = data["exercises"];
-        exercises.forEach(exercise => {
-            // add an entry form for each exercise in the workout
-            const form = util_returnExerciseEntryForm(exercise, jv_entryFormCloseButtonListener);
-            jvEntryForms.append(form);
-        });
+        const forms = util_returnBulkExerciseEntryForms(exercises, jv_entryFormCloseButtonListener);
+        forms.forEach(form => jvEntryForms.append(form));
     } else {
         // otherwise, add the singular exercise's entry form
         jvEntryForms.append(util_returnExerciseEntryForm({"id": id, "name": name}, jv_entryFormCloseButtonListener));

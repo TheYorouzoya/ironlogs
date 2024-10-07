@@ -666,10 +666,8 @@ async function en_addExerciseFormListener(target, workoutFlag) {
 
         // add a form for each exercise
         const exercises = data["exercises"];
-        exercises.forEach(exercise => {
-            const form = util_returnExerciseEntryForm(exercise, en_addEntryCloseButtonListener);
-            formContainer.prepend(form);
-        });
+        const forms = util_returnBulkExerciseEntryForms(exercises, en_addEntryCloseButtonListener);
+        forms.forEach(form => formContainer.append(form));
     } else {    // add exercise form
         formContainer.prepend(util_returnExerciseEntryForm({"id": id, "name": name}, en_addEntryCloseButtonListener));
     }
@@ -686,5 +684,6 @@ function en_addEntryCloseButtonListener (target) {
     if (element.parentNode.childElementCount <= 2) {
         document.querySelector('#enSubmitEntryButton').style.display = "none";
     }
-    element.remove();
+    element.classList.add("fade-out");
+    setTimeout(() => { element.remove(); }, 300);
 }

@@ -44,8 +44,11 @@ async function processJournalViewState(state) {
     // load view first
     await loadJournalView();
     if (state.workoutRow) {
+        console.log(state.workoutRow);
+        jvEntryForms.innerHTML = "";
         // if a workout row on the program card was clicked
         jv_cardClickListener(document.getElementById(state.workoutRow));
+        jv_toggleWorkoutCardVisibility();
     }
 }
 

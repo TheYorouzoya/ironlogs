@@ -31,13 +31,20 @@ const REMOVE_BUTTON_SVG = `
     </svg>
 `;
 
-document.addEventListener('DOMContentLoaded', function() {
+const CARET_DOWN_SVG = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" style="min-width:24px" fill="currentColor" class="bi bi-caret-down" viewBox="0 0 16 16">
+        <path d="M3.204 5h9.592L8 10.481zm-.753.659 4.796 5.48a1 1 0 0 0 1.506 0l4.796-5.48c.566-.647.106-1.659-.753-1.659H3.204a1 1 0 0 0-.753 1.659"/>
+    </svg>
+`
+
+document.addEventListener('DOMContentLoaded', async function() {
     // initialize all views and their starting listeners
     initializeViewListeners();
     jv_init();
     en_init();
     ev_init();
     pv_init();
+    an_init();
 
     // if a history state exists
     if (history.state != null) {
@@ -277,7 +284,7 @@ function clearMessages() {
 function util_returnAutocompleteExerciseSearchForm(formId, listenerFunction) {
     // initalize form
     const searchForm = document.createElement('form');
-    searchForm.classList.add("row", "form-control");
+    searchForm.classList.add("row", "form-control", "search-container");
     searchForm.textContent = "Lookup Exercise:";
 
     // initialize input field
@@ -291,6 +298,7 @@ function util_returnAutocompleteExerciseSearchForm(formId, listenerFunction) {
     // initialize search result div
     const searchResults = document.createElement('div');
     searchResults.setAttribute("id", formId);
+    searchResults.classList.add("search-results");
 
     // fetch exercise results as the user types a query
     searchInput.addEventListener('keyup', function () {
@@ -342,6 +350,7 @@ async function util_fetchExerciseSearchResults(searchQuery, formId, listenerFunc
         item.addEventListener('click', function () {
             // empty serach bar once an exercise is clicked
             container.parentNode.getElementsByTagName('input')[0].value = "";
+            container.classList.remove("visible");
             listenerFunction(this);
         })
         resultList.append(item);
@@ -349,6 +358,11 @@ async function util_fetchExerciseSearchResults(searchQuery, formId, listenerFunc
 
     // empty any previous results
     container.innerHTML = "";
+    if (results.length <= 0) {
+        container.classList.remove("visible");
+    } else {
+        container.classList.add("visible");
+    }
     container.append(resultList);
 }
 
@@ -464,7 +478,7 @@ async function util_submitEntries(entries, date) {
 function util_returnAutocompleteWorkoutExerciseSearchForm(formId, formListener) {
     // initialize form container
     const searchForm = document.createElement('form');
-    searchForm.classList.add("row", "form-control");
+    searchForm.classList.add("form-control", "search-container");
     searchForm.textContent = "Add Workout or Exercise:";
 
     // initialize input field
@@ -477,6 +491,7 @@ function util_returnAutocompleteWorkoutExerciseSearchForm(formId, formListener) 
 
     const searchResults = document.createElement('div');
     searchResults.setAttribute("id", formId);
+    searchResults.classList.add("search-results");
     
     searchInput.addEventListener('keyup', function () {
         // fetch search results as the user types in their search query
@@ -511,6 +526,7 @@ async function util_fetchWorkoutExerciseSearchResults(searchQuery, formId, formL
         // initialize workout header partition
         const header = document.createElement('div');
         header.textContent = "Workouts:";
+        header.classList.add("search-header");
         resultList.append(header);
 
         // append all the workouts
@@ -522,6 +538,7 @@ async function util_fetchWorkoutExerciseSearchResults(searchQuery, formId, formL
             item.addEventListener('click', function () {
                 // empty the search bar if a workout is clicked
                 container.parentNode.getElementsByTagName('input')[0].value = "";
+                container.classList.remove("visible");
                 formListener(this, true);
             })
             resultList.append(item);
@@ -533,6 +550,7 @@ async function util_fetchWorkoutExerciseSearchResults(searchQuery, formId, formL
         // initialize exercise header partition
         const header = document.createElement('div');
         header.textContent = "Exercises:";
+        header.classList.add("search-header");
         resultList.append(header);
 
         // append all the exercises
@@ -544,6 +562,7 @@ async function util_fetchWorkoutExerciseSearchResults(searchQuery, formId, formL
             item.addEventListener('click', function () {
                 // empty the search bar if an exercise is clicked
                 container.parentNode.getElementsByTagName('input')[0].value = "";
+                container.classList.remove("visible");
                 formListener(this, false);
             })
             resultList.append(item);
@@ -552,7 +571,24 @@ async function util_fetchWorkoutExerciseSearchResults(searchQuery, formId, formL
 
     // empty any previous search results
     container.innerHTML = "";
+    if ((workouts.length + exercises.length) <= 0) {
+        container.classList.remove("visible");
+    } else {
+        container.classList.add("visible");
+    }
     container.append(resultList);
+}
+
+
+function util_returnBulkExerciseEntryForms(exercises, closeButtonListener) {
+    let animationCounter = 0;
+    let forms = [];
+    exercises.forEach(exercise => {
+        const form = util_returnExerciseEntryForm(exercise, closeButtonListener);
+        form.setAttribute("style", `--animation-order: ${animationCounter++}`);
+        forms.push(form);
+    });
+    return forms;
 }
 
 
@@ -570,7 +606,7 @@ async function util_fetchWorkoutExerciseSearchResults(searchQuery, formId, formL
 function util_returnExerciseEntryForm(exercise, closeButtonListener) {
     // initialize containers
     const mainCont = document.createElement('div');
-    mainCont.classList.add("row", "form-control", "d-flex");
+    mainCont.classList.add("form-control", "d-flex");
 
     const formContainer = document.createElement('div');
     formContainer.classList.add("col");
@@ -605,6 +641,7 @@ function util_returnExerciseEntryForm(exercise, closeButtonListener) {
     formContainer.append(exNameLabel, exerciseForm);
 
     mainCont.append(formContainer, buttonWrapper);
+    mainCont.classList.add("entry-form");
 
     return mainCont;
 }

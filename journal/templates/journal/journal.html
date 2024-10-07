@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block header %}
-    <nav class="navbar navbar-expand-lg bg-body-tertiary" data-bs-theme="dark">
+    <nav class="navbar navbar-expand-lg">
         <div class="container-fluid">
         <a class="navbar-brand" id="journal">Your Journal</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
@@ -36,7 +36,7 @@
                     <div id="jvForms" class="col-auto">
                         <div id="jvSearchBar"></div>
                         <div id="jvEntryForms"></div>
-                        <div class="d-flex justify-content-end">
+                        <div class="jvSubmitButton d-flex justify-content-end">
                             <button type="submit" id="jvSubmit" class="btn btn-outline-info mb-3">Add Entry</button>
                         </div>
                     </div>
@@ -114,8 +114,8 @@
     <script src="{% static 'journal/entries.js' %}?{% now 'U' %}"></script>
     <script src="{% static 'journal/program.js' %}?{% now 'U' %}"></script>
     <script src="{% static 'journal/exercises.js' %}?{% now 'U' %}"></script>
+    <script src="{% static 'journal/animation.js' %}?{% now 'U' %}"></script>
     <script>
         var CSRF_TOKEN = '{{ csrf_token }}'
     </script>
-    <link rel="stylesheet" href="{% static 'journal/styles.css' %}?{% now 'U' %}">
 {% endblock %}
