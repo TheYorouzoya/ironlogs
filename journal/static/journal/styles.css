@@ -116,6 +116,12 @@ nav a {
   color: #FCA311;
 }
 
+.list-group .active {
+  --bs-list-group-active-bg: #d88b0f;
+  --bs-list-group-active-border-color: #FCA311;
+  color: #262b30;
+}
+
 /*
 =================================================
                 JOURNAL VIEW
@@ -181,6 +187,56 @@ nav a {
   background-color: white;
   color: #14213D;
   cursor: pointer;
+}
+#entries-view #entries-entry-parent-container #entries-entry-container {
+  background-color: #262b30;
+  border-radius: 0.5em;
+  padding: 0.5em;
+}
+#entries-view #entries-entry-parent-container #entries-entry-container #entries-header {
+  padding: 0.5rem;
+}
+#entries-view #entries-entry-parent-container #entries-entry-container #entries-container {
+  margin-top: 0.5rem;
+}
+#entries-view #entries-entry-parent-container #entries-search-bar {
+  margin-top: 1em;
+}
+
+/*
+=================================================
+                PROGRAM VIEW
+=================================================
+*/
+#program-view {
+  background-color: #262b30;
+  border-radius: 0.5em;
+  padding: 1rem;
+  margin-top: 0.5rem;
+}
+#program-view #program-view-header {
+  padding: 0.5rem;
+  padding-left: 1rem;
+}
+#program-view #program-view-header .row {
+  padding-left: 0.75rem;
+}
+#program-view #program-view-header .text-bg-success {
+  background-color: #FCA311 !important;
+  color: #262b30 !important;
+}
+#program-view #program-view-header .badge {
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+}
+#program-view #program-view-header .badge:hover {
+  cursor: pointer;
+}
+#program-view #program-view-buttons {
+  align-self: center;
+}
+#program-view #program-view-container {
+  margin-top: 1rem;
 }
 
 /*
@@ -258,20 +314,6 @@ nav a {
     min-width: 100%;
     margin-top: 1em;
   }
-  #entries-view #entries-entry-parent-container #entries-entry-container {
-    background-color: #262b30;
-    border-radius: 0.5em;
-    padding: 0.5em;
-  }
-  #entries-view #entries-entry-parent-container #entries-entry-container #entries-header {
-    padding: 0.5rem;
-  }
-  #entries-view #entries-entry-parent-container #entries-entry-container #entries-container {
-    margin-top: 0.5rem;
-  }
-  #entries-view #entries-entry-parent-container #entries-search-bar {
-    margin-top: 1em;
-  }
 }
 /*
 =================================================
@@ -287,5 +329,14 @@ nav a {
   }
   #journal-view #jvWorkouts .list-group-item {
     display: block;
+  }
+  #entries-view #entries-view-content {
+    margin-top: 0.5rem;
+  }
+  #entries-view #entries-calendar-wrapper {
+    min-width: 400px;
+  }
+  #entries-view #entries-entry-wrapper {
+    min-width: 100%;
   }
 }/*# sourceMappingURL=styles.css.map */

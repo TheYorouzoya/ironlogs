@@ -8,6 +8,16 @@ function en_init() {
         const startDate = document.querySelector('#entriesStartDate').value;
         const endDate = document.querySelector('#entriesEndDate').value;
         
+        if (startDate == "") {
+            displayMessage("Please select a starting date to search!", false);
+            return;
+        }
+
+        if (endDate == "") {
+            displayMessage("Please select an ending date to search!", false);
+            return;
+        }
+
         history.pushState(
             {
                 "view": ENTRIES_VIEW,
@@ -50,8 +60,12 @@ async function loadEntriesView() {
     }
 
     // display entry data
-    en_populateEntriesHeader("This week's entries:");
-    en_populateEntries(data);
+    if (data["payload"].length <= 0) {
+        en_populateEntriesHeader("No entries this week.");
+    } else {
+        en_populateEntriesHeader("This week's entries:");
+        en_populateEntries(data);
+    }
 }
 
 /**

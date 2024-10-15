@@ -137,6 +137,14 @@ nav {
     }
 }
 
+.list-group {
+    .active {
+        --bs-list-group-active-bg: #{$palette-color-1-darker};
+        --bs-list-group-active-border-color: #{$palette-color-1};
+        color: $bootstrap-dark;
+    }
+}
+
 
 /*
 =================================================
@@ -226,7 +234,68 @@ nav {
             }
         }
     }
+
+    #entries-entry-parent-container {
+
+        #entries-entry-container {
+            background-color: $bootstrap-dark;
+            border-radius: 0.5em;
+            padding: 0.5em;
+
+            #entries-header {
+                padding: 0.5rem;
+            }
+
+            #entries-container {
+                margin-top: 0.5rem;
+            }
+        }
+
+        #entries-search-bar {
+            margin-top: 1em;
+        }
+    }
 }
+
+/*
+=================================================
+                PROGRAM VIEW
+=================================================
+*/
+#program-view {
+    background-color: $bootstrap-dark;
+    border-radius: 0.5em;
+    padding: 1rem;
+    margin-top: $element-top-margin;
+
+    #program-view-header {
+        padding: 0.5rem;
+        padding-left: 1rem;
+        .row {
+            padding-left: 0.75rem;
+        }
+        .text-bg-success {
+            background-color: $palette-color-1 !important;
+            color: $bootstrap-dark !important;
+        }
+        .badge {
+            margin-top: 0.5rem;
+            font-size: 0.75rem;
+        }
+        .badge:hover {
+            cursor: pointer;
+        }
+    }
+
+    #program-view-buttons {
+        align-self: center;
+    }
+    
+    #program-view-container {
+        margin-top: 1rem;
+    }
+}
+
 
 /*
 =================================================
@@ -317,24 +386,6 @@ nav {
         #entries-entry-parent-container {
             min-width: 100%;
             margin-top: 1em;
-
-            #entries-entry-container {
-                background-color: $bootstrap-dark;
-                border-radius: 0.5em;
-                padding: 0.5em;
-
-                #entries-header {
-                    padding: 0.5rem;
-                }
-
-                #entries-container {
-                    margin-top: 0.5rem;
-                }
-            }
-
-            #entries-search-bar {
-                margin-top: 1em;
-            }
         }
     }
 }
@@ -358,6 +409,20 @@ nav {
             .list-group-item {
                 display: block;
             }
+        }
+    }
+
+    #entries-view {
+        
+        #entries-view-content {
+            margin-top: $element-top-margin;
+        }
+        
+        #entries-calendar-wrapper {
+            min-width: 400px;
+        }
+        #entries-entry-wrapper {
+            min-width: 100%;
         }
     }
 }

@@ -491,7 +491,7 @@ function util_returnAutocompleteWorkoutExerciseSearchForm(formId, formListener) 
     // initialize form container
     const searchForm = document.createElement('form');
     searchForm.classList.add("form-control", "search-container");
-    searchForm.textContent = "Add Workout or Exercise:";
+    searchForm.textContent = "Add a Workout or Exercise entry:";
 
     // initialize input field
     const searchInput = document.createElement('input');

@@ -74,7 +74,7 @@ async function pv_loadAllPrograms() {
     emptyProgramView();
 
     // add an "Add Program" button to allow the user to add programs
-    pvButtons.append(returnButton("info", "Add Program", function () {
+    pvButtons.append(returnButton("info", "Add New Program", function () {
         history.pushState(
             {
                 "view": PROGRAM_VIEW,
@@ -191,7 +191,6 @@ async function pv_loadProgram(pId) {
     // add current program badge
     const badgeWrapper = document.createElement('div');
     badgeWrapper.classList.add("row");
-    badgeWrapper.setAttribute("style", "font-size: 1rem");
 
     const currentProgramBadge = document.createElement('span');
     currentProgramBadge.classList.add("col-auto", "badge", "rounded-pill");
