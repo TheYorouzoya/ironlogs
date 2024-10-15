@@ -324,7 +324,13 @@ async function en_removeEntry(target) {
     var date = document.querySelector('.accordion-collapse').getAttribute("id");
     await en_loadCalendar(new Date(date));
     // remove the entry div from DOM
-    formContainer.parentNode.parentNode.parentNode.remove();
+    const entryNode = formContainer.closest('.list-group-item');
+    if (entryNode.parentNode.childElementCount <= 1) {
+        entryNode.closest('.accordion-item').remove();
+    } else {
+        entryNode.remove();
+    }
+    
 }
 
 
@@ -337,12 +343,7 @@ async function en_removeEntry(target) {
 function en_populateEntriesHeader(headerText) {
     // clear current header
     const header = document.querySelector('#entries-header');
-    header.innerHTML = "";
-
-    // append new heading
-    const heading = document.createElement('h2');
-    heading.innerHTML = headerText;
-    header.append(heading);
+    header.textContent = headerText;
 }
 
 
@@ -399,7 +400,16 @@ async function en_loadCalendar(anchorDate) {
     // empty nav and reset the previous and next buttons
     const calendarNav = document.querySelector('#calendar-nav');
     calendarNav.innerHTML = "";
-    calendarNav.innerHTML = '<button id="calendar-previous" class="btn"><<</button><button id="calendar-next" class="btn">>></button>';
+
+    const calendarPrev = document.createElement('btn');
+    calendarPrev.innerHTML = NAV_LEFT_ARROW_SVG;
+    calendarPrev.setAttribute("id", "calendar-previous");
+    
+    const calendarNext = document.createElement('btn');
+    calendarNext.innerHTML = NAV_RIGHT_ARROW_SVG;
+    calendarNext.setAttribute("id", "calendar-next");
+
+    calendarNav.append(calendarPrev, calendarNext);
 
     // Get currently shown year and month
     const year = anchorDate.getFullYear();
@@ -454,9 +464,9 @@ async function en_loadCalendar(anchorDate) {
     let daysSoFar = 0;          // Counts the number of days added to the calendar so far
     let nextMonthDay = 1;       // Counts the number of days added from the next month
 
-    let rows = 4;                                       // default calendar rows
-    if (beforeDays > 0) rows++;                         // add a row for previous month's days
-    if (afterPadding > 0 && afterPadding > 4) rows++;   // add a row for next month's days
+    let rows = 4;                                           // default calendar rows
+    if (beforePadding > 0 || afterPadding > 0) rows++;      // add a row for previous month's days
+    if ((beforePadding + afterPadding) > 10) rows++;        // add a row for next month's days
 
     for (let i = 0; i < rows; i++) {    // For each row in the calendar
         // Initialize row div
@@ -498,21 +508,26 @@ async function en_loadCalendar(anchorDate) {
                 datesIndex++;
             } else {    // if an entry doesn't exist
                 // add listener to show the exercise search bar
-                dateSlot.addEventListener('click', () => {
-                    history.pushState(
-                        {
-                            "view": ENTRIES_VIEW,
-                            "calendar": clickDate,
-                            "calendarDateClicked": {
-                                "entry": false
-                            }
-                        },
-                        '',
-                        `#entries/date=${clickDate}`
-                    );
-                    document.querySelector('#entries-container').innerHTML = "";
-                    en_addEntryOnDate(clickDate);
-                });
+                let today = new Date();
+                let currentDate = new Date(clickDate);
+                if (currentDate <= today) {
+                    dateSlot.addEventListener('click', () => {
+                        history.pushState(
+                            {
+                                "view": ENTRIES_VIEW,
+                                "calendar": clickDate,
+                                "calendarDateClicked": {
+                                    "entry": false
+                                }
+                            },
+                            '',
+                            `#entries/date=${clickDate}`
+                        );
+                        document.querySelector('#entries-container').innerHTML = "";
+                        en_populateEntriesHeader(`Add entry on ${new Date(clickDate).toDateString()}:`);
+                        en_addEntryOnDate(clickDate);
+                    });
+                }
             }
             currentMonthDay++;
             
@@ -586,9 +601,6 @@ function en_addEntryOnDate(date) {
     if (givenDate > td) 
         return;
 
-    // update entries header
-    en_populateEntriesHeader(`Add entry on ${givenDate.toDateString()}:`);
-
     // clear search bar container
     const entriesWrapper = document.querySelector('#entries-search-bar');
     entriesWrapper.innerHTML = "";
@@ -611,7 +623,7 @@ function en_addEntryOnDate(date) {
     entriesWrapper.append(exForms);
 
     const buttonWrapper = document.createElement('div');
-    buttonWrapper.classList.add("d-flex");
+    buttonWrapper.classList.add("d-flex", "justify-content-end");
     
     const submitButton = returnButton(
         "info", 
@@ -630,7 +642,7 @@ function en_addEntryOnDate(date) {
     submitButton.style.display = "none";
     
     buttonWrapper.append(submitButton);
-    exForms.append(buttonWrapper);
+    entriesWrapper.append(buttonWrapper);
 }
 
 /**
@@ -669,7 +681,7 @@ async function en_addExerciseFormListener(target, workoutFlag) {
         const forms = util_returnBulkExerciseEntryForms(exercises, en_addEntryCloseButtonListener);
         forms.forEach(form => formContainer.append(form));
     } else {    // add exercise form
-        formContainer.prepend(util_returnExerciseEntryForm({"id": id, "name": name}, en_addEntryCloseButtonListener));
+        formContainer.append(util_returnExerciseEntryForm({"id": id, "name": name}, en_addEntryCloseButtonListener));
     }
 }
 

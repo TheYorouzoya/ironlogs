@@ -27,7 +27,7 @@
     <div id="content" class="container" data-bs-theme="dark">
         <div id="message" class="toast-container position-fixed start-50 translate-middle p-3"></div>
         <div id="journal-view">
-            <div id="jvHeader">
+            <div id="jvHeader" class="view-heading">
 
             </div>
             <div id="jvContent">
@@ -44,45 +44,58 @@
             </div>
         </div>
         <div id="entries-view">
-            <div id="entries-calendar-container" class="container">
-                <div id="calendar-header" class="row">
-                    <div id="calendar-current-date" class="col display-6"></div>
-                    <div id="calendar-nav" class="col text-end">
-                        
+            <!-- <div id="entries-view-header" class="view-heading display-6">Your Entries:</div> -->
+            <div id="entries-view-content">
+                <div class="row">
+                    <div id="entries-calendar-wrapper" class="col-4">
+                        <div id="entries-calendar-container">
+                            <div id="calendar-header" class="row">
+                                <div id="calendar-current-date" class="col-8 display-6"></div>
+                                <div id="calendar-nav" class="col-4 text-end">
+                                    
+                                </div>
+                            </div>
+                            <div id="calendar-body" class="container text-center">
+                                <div id="calendar-days" class="row">
+                                    <div class="col">Sun</div>
+                                    <div class="col">Mon</div>
+                                    <div class="col">Tue</div>
+                                    <div class="col">Wed</div>
+                                    <div class="col">Thu</div>
+                                    <div class="col">Fri</div>
+                                    <div class="col">Sat</div>
+                                </div>
+                                <div id="calendar-dates"></div>
+                            </div>
+                            <hr>
+                            <div id="entries-form-container">
+                                <form id="entries-form" class="row">
+                                    <div class="mb-3 col">
+                                        <label for="entriesStartDate" class="form-label"> Start Date: </label>
+                                        <input class="form-control" type="date" id="entriesStartDate">
+                                    </div>
+                                    <div class="mb-3 col">
+                                        <label for="entriesEndDate" class="form-label"> End Date: </label>
+                                        <input class="form-control" type="date" id="entriesEndDate">
+                                    </div>
+                                    <div class="d-flex justify-content-end">
+                                        <button type="submit" class="btn btn-outline-info">Search Entries</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="entries-entry-parent-container" class="col-8 container">
+                        <div id="entries-entry-wrapper">
+                            <div id="entries-entry-container">
+                                <div id="entries-header" class="display-6"></div>
+                                <div id="entries-container"></div>
+                            </div>
+                            <div id="entries-search-bar"></div>
+                        </div>
                     </div>
                 </div>
-                <div id="calendar-body" class="container text-center">
-                    <div id="calendar-days" class="row">
-                        <div class="col">Sun</div>
-                        <div class="col">Mon</div>
-                        <div class="col">Tue</div>
-                        <div class="col">Wed</div>
-                        <div class="col">Thu</div>
-                        <div class="col">Fri</div>
-                        <div class="col">Sat</div>
-                    </div>
-                    <div id="calendar-dates"></div>
-                </div>
             </div>
-            <div id="entries-form-container">
-                <form id="entries-form">
-                    <div class="mb-3">
-                        <label for="entriesStartDate" class="form-label"> Start Date: </label>
-                        <input class="form-control" type="date" id="entriesStartDate">
-                    </div>
-                    <div class="mb-3">
-                        <label for="entriesEndDate" class="form-label"> End Date: </label>
-                        <input class="form-control" type="date" id="entriesEndDate">
-                    </div>
-                    <div class="mb-3">
-                        <button type="submit" class="btn btn-primary mb-3">Get Entries</button>
-                    </div>
-                </form>
-            </div>
-            <div id="entries-header"></div>
-            <div id="entries-search-bar"></div>
-            <div id="entries-container"></div>
-            
         </div>
         <div id="program-view">
             <div class="row">

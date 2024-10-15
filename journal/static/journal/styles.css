@@ -3,9 +3,17 @@ body {
   background-color: #181818;
   color: white;
 }
+body .btn {
+  border-color: #FCA311;
+  color: #FCA311;
+}
+body .btn:hover {
+  border-color: #FCA311;
+  background-color: #FCA311;
+  color: #14213D;
+}
 
-.container {
-  align-items: center;
+#content {
   max-width: 1300px;
 }
 
@@ -14,122 +22,20 @@ body {
   box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 8px #FCA311;
 }
 
-#journal, #entries, #program, #exercises {
-  color: #14213D;
-}
-
-#navbar {
-  color: #14213D;
-}
-
 nav {
   background-color: #FCA311;
-}
-nav .container-fluid {
-  max-width: 1300px;
 }
 nav a {
   cursor: pointer;
 }
 
-#jvHeader {
+.view-heading {
   padding: 0.75rem;
   margin-top: 0.5rem;
   margin-bottom: 0.75rem;
-  background-color: #242423;
+  background-color: #262b30;
   border-radius: 0.5rem;
-}
-
-#jvContent .jvSubmitButton {
-  padding-top: 0.75rem;
-}
-#jvContent .card-header {
-  margin-left: 0;
-  margin-right: 0;
-}
-#jvContent .card-header .col-9 {
-  padding-left: 0;
-}
-
-#jvSubmit {
-  border-color: #FCA311;
-  color: #FCA311;
-}
-
-#jvSubmit:hover {
-  background-color: #FCA311;
-  color: #14213D;
-}
-
-@media (max-width: 768px) {
-  #jvWorkouts {
-    padding-bottom: 0.75rem;
-    min-width: 100%;
-  }
-  @keyframes fadeOut {
-    0% {
-      opacity: 1;
-    }
-    100% {
-      opacity: 0;
-      transform: translateY(-8px);
-      display: none;
-    }
-  }
-  #jvWorkouts .fade-out {
-    animation-name: fadeOut;
-    animation-duration: 200ms;
-    animation-fill-mode: both;
-    animation-delay: 50ms;
-    animation-timing-function: ease-in-out;
-  }
-  @keyframes fadeIn {
-    0% {
-      opacity: 0;
-      display: block;
-      transform: translateY(-8px);
-    }
-    100% {
-      opacity: 1;
-    }
-  }
-  #jvWorkouts .fade-in {
-    animation-name: fadeIn;
-    animation-duration: 250ms;
-    animation-fill-mode: both;
-    animation-delay: 50ms;
-    animation-timing-function: ease-in-out;
-  }
-  #jvWorkouts .list-group-item.active {
-    display: block;
-  }
-  #jvWorkouts .workout-card-toggle {
-    display: block;
-    padding: 0.25rem;
-  }
-  #jvWorkouts .workout-card-toggle svg {
-    cursor: pointer;
-  }
-  #jvWorkouts .hide {
-    display: none;
-  }
-}
-@media (min-width: 768px) {
-  #jvWorkouts .workout-card-toggle svg {
-    display: none;
-  }
-  #jvWorkouts .list-group-item {
-    display: block;
-  }
-}
-#jvWorkouts .list-group-item.active {
-  background-color: #FCA311;
-  border: none;
-  color: #14213D;
-}
-
-#jvForms {
-  flex-grow: 1;
+  color: white;
 }
 
 @keyframes slide {
@@ -162,7 +68,7 @@ nav a {
 .search-results {
   position: absolute;
   display: none;
-  background-color: #212529;
+  background-color: #262b30;
   width: 100%;
   top: 100%;
   left: 0;
@@ -185,11 +91,201 @@ nav a {
   display: block;
 }
 
-#calendar-dates .date-faded {
+.accordion {
+  --bs-accordion-btn-color: white;
+  --bs-accordion-btn-bg: #262b30;
+  --bs-accordion-btn-active-color: white;
+  --bs-accordion-btn-active-bg: #FCA311;
+  --bs-accordion-body-bg: #f4f4f4;
+  --bs-accordion-body-color: #333;
+  --bs-accordion-active-color: #262b30;
+  --bs-accordion-active-bg: #d88b0f;
+  --bs-accordion-btn-focus-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 0.25rem #FCA311;
+}
+
+.accordion-button::after {
+  background-image: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="%23FCA311" viewBox="0 0 16 16"%3E%3Cpath fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/%3E%3C/svg%3E');
+}
+
+.accordion-button:not(.collapsed)::after {
+  background-image: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="%2314213D" viewBox="0 0 16 16"%3E%3Cpath fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/%3E%3C/svg%3E');
+}
+
+.accordion-body .list-group-item svg:hover {
+  cursor: pointer;
+  color: #FCA311;
+}
+
+/*
+=================================================
+                JOURNAL VIEW
+=================================================
+*/
+#journal-view #jvContent .jvSubmitButton {
+  padding-top: 0.75rem;
+}
+#journal-view #jvContent .card-header {
+  margin-left: 0;
+  margin-right: 0;
+}
+#journal-view #jvContent .card-header .col-9 {
+  padding-left: 0;
+}
+#journal-view #jvWorkouts .list-group-item.active {
+  background-color: #FCA311;
+  border: none;
+  color: #14213D;
+}
+#journal-view #jvForms {
+  flex-grow: 1;
+}
+
+/*
+=================================================
+                ENTRIES VIEW
+=================================================
+*/
+#entries-view #entries-calendar-container {
+  padding: 0.75em;
+  border-radius: 0.5em;
+  background-color: #262b30;
+}
+#entries-view #entries-calendar-container #calendar-header #calendar-current-date {
+  font-size: 2rem;
+}
+#entries-view #entries-calendar-container #calendar-nav btn {
+  color: #FCA311;
+}
+#entries-view #entries-calendar-container #calendar-nav btn :hover {
+  cursor: pointer;
+  color: white;
+}
+#entries-view #entries-calendar-container #calendar-days {
+  background-color: #FCA311;
+  color: #14213D;
+  border-radius: 2em;
+  margin-top: 3px;
+}
+#entries-view #entries-calendar-container #calendar-dates .col {
+  margin: 3px;
+  border-radius: 2em;
+}
+#entries-view #entries-calendar-container #calendar-dates .date-faded {
   color: rgb(78, 78, 78);
 }
-#calendar-dates .date-marked {
+#entries-view #entries-calendar-container #calendar-dates .date-marked {
+  background-color: #FCA311;
+  color: #14213D;
+}
+#entries-view #entries-calendar-container #calendar-dates .col:hover:not(.date-faded):hover {
   background-color: white;
-  color: grey;
+  color: #14213D;
   cursor: pointer;
+}
+
+/*
+=================================================
+                MOBILE STYLES
+=================================================
+*/
+@media (max-width: 990px) {
+  /*
+  =================================================
+                  JOURNAL VIEW
+  =================================================
+  */
+  #journal-view #jvWorkouts {
+    padding-bottom: 0.75rem;
+    min-width: 100%;
+  }
+  @keyframes fadeOut {
+    0% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-8px);
+      display: none;
+    }
+  }
+  #journal-view #jvWorkouts .fade-out {
+    animation-name: fadeOut;
+    animation-duration: 200ms;
+    animation-fill-mode: both;
+    animation-delay: 50ms;
+    animation-timing-function: ease-in-out;
+  }
+  @keyframes fadeIn {
+    0% {
+      opacity: 0;
+      display: block;
+      transform: translateY(-8px);
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+  #journal-view #jvWorkouts .fade-in {
+    animation-name: fadeIn;
+    animation-duration: 250ms;
+    animation-fill-mode: both;
+    animation-delay: 50ms;
+    animation-timing-function: ease-in-out;
+  }
+  #journal-view #jvWorkouts .list-group-item.active {
+    display: block;
+  }
+  #journal-view #jvWorkouts .workout-card-toggle {
+    display: block;
+    padding: 0.25rem;
+  }
+  #journal-view #jvWorkouts .workout-card-toggle svg {
+    cursor: pointer;
+  }
+  #journal-view #jvWorkouts .hide {
+    display: none;
+  }
+  /*
+  =================================================
+                  ENTRIES VIEW
+  =================================================
+  */
+  #entries-view #entries-calendar-wrapper {
+    min-width: 100%;
+    margin-top: 0.5rem;
+  }
+  #entries-view #entries-entry-parent-container {
+    min-width: 100%;
+    margin-top: 1em;
+  }
+  #entries-view #entries-entry-parent-container #entries-entry-container {
+    background-color: #262b30;
+    border-radius: 0.5em;
+    padding: 0.5em;
+  }
+  #entries-view #entries-entry-parent-container #entries-entry-container #entries-header {
+    padding: 0.5rem;
+  }
+  #entries-view #entries-entry-parent-container #entries-entry-container #entries-container {
+    margin-top: 0.5rem;
+  }
+  #entries-view #entries-entry-parent-container #entries-search-bar {
+    margin-top: 1em;
+  }
+}
+/*
+=================================================
+                DESKTOP STYLES
+=================================================
+*/
+@media (min-width: 990px) {
+  html {
+    overflow-y: scroll;
+  }
+  #journal-view #jvWorkouts .workout-card-toggle svg {
+    display: none;
+  }
+  #journal-view #jvWorkouts .list-group-item {
+    display: block;
+  }
 }/*# sourceMappingURL=styles.css.map */

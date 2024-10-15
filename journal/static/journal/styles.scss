@@ -3,16 +3,28 @@
 $dark-black: #14213D;
 $palette-color-background: #181818;
 $palette-color-1: #FCA311;
-$bootstrap-dark: #212529;
+$palette-color-1-darker: #d88b0f;
+$bootstrap-dark: #262b30;
 $max-container-width: 1300px;
+$element-top-margin: 0.5rem;
 
 body {
     background-color: $palette-color-background;
     color: white;
+
+    .btn {
+        border-color: $palette-color-1;
+        color: $palette-color-1;
+    }
+    
+    .btn:hover {
+        border-color: $palette-color-1;
+        background-color: $palette-color-1;
+        color: $dark-black;
+    }
 }
 
-.container {
-    align-items: center;
+#content {
     max-width: $max-container-width;
 }
 
@@ -24,21 +36,8 @@ body {
 }
 
 
-#journal, #entries, #program, #exercises {
-    color: $dark-black;
-}
-
-
-#navbar {
-    color: $dark-black;
-}
-
-
 nav {
     background-color: #FCA311;
-    .container-fluid {
-        max-width: $max-container-width;
-    }
     a {
         cursor: pointer;
     }
@@ -46,40 +45,203 @@ nav {
 }
 
 
-#jvHeader {
+.view-heading {
     padding: 0.75rem;
-    margin-top: 0.5rem;
+    margin-top: $element-top-margin;
     margin-bottom: 0.75rem;
-    background-color: #242423;
+    background-color: $bootstrap-dark;
     border-radius: 0.5rem;
+    color: white;
 }
 
-#jvContent {
-    .jvSubmitButton {
-        padding-top: 0.75rem;
+@keyframes slide {
+    0% {
+        opacity: 0;
+        transform: translateY(-8px);
     }
+    100% {
+        opacity: 1;
+    }
+}
 
-    .card-header {
-        margin-left: 0;
-        margin-right: 0;
-        .col-9 {
-            padding-left: 0;
+.entry-form {
+    margin-top: $element-top-margin;
+    animation-name: slide;
+    animation-duration: 200ms;
+    animation-delay: calc(var(--animation-order) * 100ms);
+    animation-fill-mode: both;
+    animation-timing-function: ease-in-out;
+
+    svg:hover {
+        cursor: pointer;
+        color: $palette-color-1;
+    }
+}
+
+.search-container {
+    position: relative;
+    z-index: 1;
+}
+
+.search-results {
+    position: absolute;
+    display: none;
+    background-color: $bootstrap-dark;
+    width: 100%;
+    top: 100%;
+    left: 0;
+    border-style: solid;
+    border-width: 1px;
+    border-color: $palette-color-1;
+    padding-bottom: 0.75rem;
+    max-height: 300px;
+    overflow-y: auto;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+
+    .search-header {
+        padding: 0.5rem;
+        padding-bottom: 0;
+        color: $palette-color-1;
+    }
+}
+
+.search-results.visible { 
+    display: block;
+}
+
+.accordion {
+    --bs-accordion-btn-color: white;         
+    --bs-accordion-btn-bg: #{$bootstrap-dark};          
+    --bs-accordion-btn-active-color: white;  
+    --bs-accordion-btn-active-bg: #{$palette-color-1};   
+    --bs-accordion-body-bg: #f4f4f4;         
+    --bs-accordion-body-color: #333;         
+    --bs-accordion-active-color: #{$bootstrap-dark};
+    --bs-accordion-active-bg: #{$palette-color-1-darker};
+    --bs-accordion-btn-focus-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 0.25rem #{$palette-color-1};
+}
+
+.accordion-button::after {
+    background-image: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="%23FCA311" viewBox="0 0 16 16"%3E%3Cpath fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/%3E%3C/svg%3E');
+}
+  
+.accordion-button:not(.collapsed)::after {
+    background-image: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="%2314213D" viewBox="0 0 16 16"%3E%3Cpath fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/%3E%3C/svg%3E');
+}
+
+.accordion-body .list-group-item {
+    svg:hover {
+        cursor: pointer;
+        color: $palette-color-1;
+    }
+}
+
+
+/*
+=================================================
+                JOURNAL VIEW
+=================================================
+*/
+
+#journal-view {
+    #jvContent {
+        .jvSubmitButton {
+            padding-top: 0.75rem;
+        }
+    
+        .card-header {
+            margin-left: 0;
+            margin-right: 0;
+            .col-9 {
+                padding-left: 0;
+            }
+        }
+    }
+    
+    #jvWorkouts {
+        .list-group-item.active {
+            background-color: #FCA311;
+            border: none;
+            color: $dark-black;
+        }
+    }
+    
+    
+    #jvForms {
+        flex-grow: 1;
+    }
+}
+
+/*
+=================================================
+                ENTRIES VIEW
+=================================================
+*/
+
+#entries-view {
+
+    #entries-calendar-container {
+        padding: 0.75em;
+        border-radius: 0.5em;
+        background-color: $bootstrap-dark;
+
+        #calendar-header {
+            #calendar-current-date {
+                font-size: 2rem;
+            }
+        }
+
+        #calendar-nav btn {
+            color:$palette-color-1;
+            :hover{
+                cursor: pointer;
+                color: white;
+            }   
+        }
+
+        #calendar-days {
+            background-color: $palette-color-1;
+            color: $dark-black;
+            border-radius: 2em;
+            margin-top : 3px;
+        }
+
+        #calendar-dates {
+            .col {
+                margin: 3px;
+                border-radius: 2em;
+            }
+            .date-faded {
+                color: rgb(78, 78, 78);
+            }
+            .date-marked {
+                background-color: $palette-color-1;
+                color: $dark-black;
+            }
+            .col:hover:not(.date-faded):hover {
+                background-color: white;
+                color: $dark-black;
+                cursor: pointer;
+            }
         }
     }
 }
 
-#jvSubmit {
-    border-color: $palette-color-1;
-    color: $palette-color-1;
-}
+/*
+=================================================
+                MOBILE STYLES
+=================================================
+*/
 
-#jvSubmit:hover {
-    background-color: $palette-color-1;
-    color: $dark-black;
-}
-
-#jvWorkouts {
-    @media (max-width: 768px) {
+@media (max-width: 990px) {
+    /*
+    =================================================
+                    JOURNAL VIEW
+    =================================================
+    */
+    #journal-view {
+        #jvWorkouts {
         padding-bottom: 0.75rem;
         min-width: 100%;
 
@@ -135,94 +297,67 @@ nav {
         .hide {
             display: none;
         }
-    }
-    @media (min-width: 768px) {
-        .workout-card-toggle svg{
-            display: none;
-        }
-        .list-group-item {
-            display: block;
         }
     }
 
-    .list-group-item.active {
-        background-color: #FCA311;
-        border: none;
-        color: $dark-black;
+
+    /*
+    =================================================
+                    ENTRIES VIEW
+    =================================================
+    */
+
+    #entries-view {
+
+        #entries-calendar-wrapper {
+            min-width: 100%;
+            margin-top: $element-top-margin;
+        }
+
+        #entries-entry-parent-container {
+            min-width: 100%;
+            margin-top: 1em;
+
+            #entries-entry-container {
+                background-color: $bootstrap-dark;
+                border-radius: 0.5em;
+                padding: 0.5em;
+
+                #entries-header {
+                    padding: 0.5rem;
+                }
+
+                #entries-container {
+                    margin-top: 0.5rem;
+                }
+            }
+
+            #entries-search-bar {
+                margin-top: 1em;
+            }
+        }
     }
 }
 
 
-#jvForms {
-    flex-grow: 1;
-}
+/*
+=================================================
+                DESKTOP STYLES
+=================================================
+*/
 
-
-
-@keyframes slide {
-    0% {
-        opacity: 0;
-        transform: translateY(-8px);
+@media (min-width: 990px) {
+    html {
+        overflow-y: scroll;
     }
-    100% {
-        opacity: 1;
-    }
-}
-
-.entry-form {
-    margin-top: 0.5rem;
-    animation-name: slide;
-    animation-duration: 200ms;
-    animation-delay: calc(var(--animation-order) * 100ms);
-    animation-fill-mode: both;
-    animation-timing-function: ease-in-out;
-
-    svg:hover {
-        cursor: pointer;
-        color: $palette-color-1;
+    #journal-view {
+        #jvWorkouts {
+            .workout-card-toggle svg{
+                display: none;
+            }
+            .list-group-item {
+                display: block;
+            }
+        }
     }
 }
-
-.search-container {
-    position: relative;
-    z-index: 1;
-}
-
-.search-results {
-    position: absolute;
-    display: none;
-    background-color: $bootstrap-dark;
-    width: 100%;
-    top: 100%;
-    left: 0;
-    border-style: solid;
-    border-width: 1px;
-    border-color: $palette-color-1;
-    padding-bottom: 0.75rem;
-    max-height: 300px;
-    overflow-y: auto;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    z-index: 100;
-
-    .search-header {
-        padding: 0.5rem;
-        padding-bottom: 0;
-        color: $palette-color-1;
-    }
-}
-
-.search-results.visible { 
-    display: block;
-}
-
-#calendar-dates {
-    .date-faded {
-        color: rgb(78, 78, 78);
-    }
-    .date-marked {
-        background-color: white;
-        color: grey;
-        cursor: pointer;
-    }
-}
-
