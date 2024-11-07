@@ -99,6 +99,7 @@ const emptyCardRowListener = function () {
  */
 async function jv_loadCurrentProgramWorkouts() {
     jvEntryForms.innerHTML = "";
+    workoutToday = "";
     // fetch current program data from the server
     const apiResponse = await fetch(`program/current/workouts`)
     const data = await apiResponse.json();

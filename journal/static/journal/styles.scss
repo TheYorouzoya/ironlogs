@@ -8,31 +8,52 @@ $bootstrap-dark: #262b30;
 $max-container-width: 1300px;
 $element-top-margin: 0.5rem;
 
+
 body {
     background-color: $palette-color-background;
     color: white;
 
-    .btn {
+    .btn-outline-info {
         border-color: $palette-color-1;
         color: $palette-color-1;
     }
     
-    .btn:hover {
+    .btn-outline-info:hover {
         border-color: $palette-color-1;
         background-color: $palette-color-1;
         color: $dark-black;
     }
-}
 
-#content {
-    max-width: $max-container-width;
-}
-
-.form-control {
+    
     input:focus, textarea:focus {
         border-color: $palette-color-1;
         box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 8px $palette-color-1;
     }
+    .entry-form-close-button {
+        padding-right: 0.25rem;
+    }
+    .form-check-input:checked {
+        background-color: $palette-color-1;
+        border-color: $palette-color-1;
+    }
+    input.form-control:focus, textarea.form-control:focus {
+        border-color: $palette-color-1;
+        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 8px $palette-color-1;
+    }
+
+    table { 
+        thead {
+            --bs-table-color: #{$palette-color-1};
+        }
+    }
+
+    // form.search-container:not(:focus-within) .search-results {
+    //     display:none;
+    // }
+}
+
+#content {
+    max-width: $max-container-width;
 }
 
 
@@ -143,6 +164,9 @@ nav {
         --bs-list-group-active-border-color: #{$palette-color-1};
         color: $bootstrap-dark;
     }
+    .active:hover {
+        background-color: $palette-color-1;
+    }
 }
 
 
@@ -188,6 +212,10 @@ nav {
 */
 
 #entries-view {
+
+    .edit-entry-button-wrapper {
+        margin-top: 0.5rem;
+    }
 
     #entries-calendar-container {
         padding: 0.75em;
@@ -263,39 +291,213 @@ nav {
 =================================================
 */
 #program-view {
-    background-color: $bootstrap-dark;
-    border-radius: 0.5em;
-    padding: 1rem;
-    margin-top: $element-top-margin;
+    #program-view-header-wrapper {
+        background-color: $bootstrap-dark;
+        border-radius: 0.5em;
+        padding: 1rem;
+        margin-top: $element-top-margin;
 
-    #program-view-header {
-        padding: 0.5rem;
-        padding-left: 1rem;
-        .row {
+        .program-card {
+            margin-top: 1rem;
+            .list-group-item:hover {
+                cursor: pointer;
+            }
+        }
+    
+        #program-view-header {
             padding-left: 0.75rem;
+            .row {
+                padding-left: 0.75rem;
+            }
+            .text-bg-success {
+                background-color: $palette-color-1-darker !important;
+                color: $bootstrap-dark !important;
+            }
+            .badge {
+                margin-top: 0.5rem;
+                font-size: 0.7rem;
+            }
+            .badge:hover {
+                cursor: pointer;
+            }
         }
-        .text-bg-success {
-            background-color: $palette-color-1 !important;
-            color: $bootstrap-dark !important;
+    
+        #program-view-buttons {
+            align-self: center;
         }
-        .badge {
-            margin-top: 0.5rem;
-            font-size: 0.75rem;
-        }
-        .badge:hover {
-            cursor: pointer;
+
+        #program-view-description {
+            margin-top: $element-top-margin;
         }
     }
 
-    #program-view-buttons {
-        align-self: center;
+    #pvWorkoutContainer {
+        background-color: $bootstrap-dark;
+        border-radius: 0.5em;
+        padding: 1rem;
+        margin-top: $element-top-margin;
+
+        .pv-workout-description {
+            margin-top: $element-top-margin;
+        }
+
+        table { 
+            thead {
+                --bs-table-color: #{$palette-color-1};
+            }
+            td {
+                .add-workout-button:hover {
+                    color: $palette-color-1;
+                }
+                .remove-workout-button:hover {
+                    color: #dc3545;
+                }
+                svg:hover {
+                    cursor: pointer;
+                }
+            }
+        }
+    }
+
+    #pvExerciseContainer {
+        background-color: $bootstrap-dark;
+        border-radius: 0.5em;
+        padding: 1rem;
+        margin-top: $element-top-margin;
+
+        .workout-edit-button .btn {
+            align-self: center;
+        }
+        .workout-helptext {
+            margin-top: $element-top-margin;
+        }
+
+        .pvWorkoutExerciseLink:hover {
+            cursor: pointer;
+            color: $palette-color-1;
+        }
+
+        #pvAddExerciseFormContainer {
+            margin-top: 1rem;
+            .add-exercise-button {
+                text-align: center;
+            }
+            .exercise-search-bar{
+                margin-top: 1rem;
+            }
+            .exercise-form {
+                margin-top: $element-top-margin;
+            }
+            .exercise-form-footer {
+                margin-top: $element-top-margin;
+                .btn {
+                    margin-left: 0.5rem;
+                }
+            }
+        }
+        #pvExerciseHelptext, #pvWkFmHelptext, #pvWkFmWrapper {
+            margin-top: $element-top-margin;
+        }
+        #pvWkFmSlWrapper {
+            margin-top: $element-top-margin;
+            .btn {
+                margin-top:1rem;
+                text-align: right;
+            }
+        }
+        #pvWorkoutEditFormWrapper {
+            margin-top: 1rem;
+            #pvWkEdFrmRBtns {
+                .btn {
+                    margin-left: 0.5rem;
+                }
+            }
+        }
     }
     
-    #program-view-container {
-        margin-top: 1rem;
-    }
 }
 
+
+/*
+=================================================
+                EXERCISE VIEW
+=================================================
+*/
+#exercises-view {
+    
+    #exHeader {
+        padding: 0.75rem;
+        margin-top: $element-top-margin;
+        margin-bottom: 0.75rem;
+        background-color: $bootstrap-dark;
+        border-radius: 0.5rem;
+        color: white;
+    
+        .text-bg-info {
+            background-color: $palette-color-1-darker !important;
+            color: $bootstrap-dark !important;
+        }
+
+        #exHeaderWorkouts {
+            margin-top: $element-top-margin;
+        }
+
+        #evExerciseBodyparts span {
+            margin-right: 0.25rem;
+        }
+
+        #evExerciseDescription {
+            margin-top: $element-top-margin;
+        }
+
+        #exEditExerciseButtons .btn {
+            margin-left: 0.5rem;
+        }
+
+        #evEditExerciseForm {
+            margin-top: $element-top-margin;
+        }
+    }
+
+    #exContentWrapper {
+        background-color: $bootstrap-dark;
+        border-radius: 0.5em;
+        padding: 1rem;
+        margin-top: $element-top-margin;
+
+        table {
+            td span:hover {
+                cursor: pointer;
+                color: $palette-color-1;
+            }
+        }
+
+        #evTableContainer {
+            margin-top: $element-top-margin;
+        }
+
+        #exFormsButtonWrapper, #exFormResetButton {
+            max-width: 130px;
+        }
+
+        #exTableButtonWrapper {
+            margin-top: $element-top-margin;
+            .btn {
+                margin-left: 0.5rem;
+            }
+        }
+
+        .display-6 {
+            margin-top: $element-top-margin;
+        }
+
+        #exEntryListContainer {
+            white-space: pre-wrap;
+            margin-top: $element-top-margin;
+        }
+    }
+
+}
 
 /*
 =================================================
@@ -303,7 +505,7 @@ nav {
 =================================================
 */
 
-@media (max-width: 990px) {
+@media (max-width: 992px) {
     /*
     =================================================
                     JOURNAL VIEW
@@ -397,7 +599,7 @@ nav {
 =================================================
 */
 
-@media (min-width: 990px) {
+@media (min-width: 992px) {
     html {
         overflow-y: scroll;
     }

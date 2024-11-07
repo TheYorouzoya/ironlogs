@@ -98,6 +98,13 @@ def register(request):
         return render(request, "journal/register.html")
 
 
+def check_login(request):
+    """
+    Returns true if the user is logged in
+    """
+    is_authenticated = request.user.is_authenticated
+    return JsonResponse({'isAuthenticated': is_authenticated})
+
 
 #==============================================================================#
 #                               PROGRAM ROUTES
@@ -721,7 +728,7 @@ def exercise(request):
             }, status=404)
         
         return JsonResponse({
-            "exercise": exercise.serialize()
+            "exercise": exercise.table_serialize()
         }, status=200)
     
     # editing an exercise
@@ -846,7 +853,7 @@ def filterExercises(request):
         return JsonResponse({
             "error": "Page number must be an integer!"
         }, status=400)
-    
+                 
     ITEMS_PER_PAGE = 10
     paginator = Paginator(exercises, ITEMS_PER_PAGE)
     
@@ -878,7 +885,7 @@ def exerciseEntries(request, exerciseId):
             "error": "Exercise with ID does not exist!"
         }, status=404)
     
-    entries = Entry.objects.filter(trainee=request.user, exercise=exercise).order_by("-timestamp")
+    entries = Entry.objects.filter(trainee=request.user, exercise=exercise).order_by("timestamp")
 
     return JsonResponse({
         "exercise": exercise.name,

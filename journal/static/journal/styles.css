@@ -3,23 +3,36 @@ body {
   background-color: #181818;
   color: white;
 }
-body .btn {
+body .btn-outline-info {
   border-color: #FCA311;
   color: #FCA311;
 }
-body .btn:hover {
+body .btn-outline-info:hover {
   border-color: #FCA311;
   background-color: #FCA311;
   color: #14213D;
 }
+body input:focus, body textarea:focus {
+  border-color: #FCA311;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 8px #FCA311;
+}
+body .entry-form-close-button {
+  padding-right: 0.25rem;
+}
+body .form-check-input:checked {
+  background-color: #FCA311;
+  border-color: #FCA311;
+}
+body input.form-control:focus, body textarea.form-control:focus {
+  border-color: #FCA311;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 8px #FCA311;
+}
+body table thead {
+  --bs-table-color: #FCA311;
+}
 
 #content {
   max-width: 1300px;
-}
-
-.form-control input:focus, .form-control textarea:focus {
-  border-color: #FCA311;
-  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 8px #FCA311;
 }
 
 nav {
@@ -121,6 +134,9 @@ nav a {
   --bs-list-group-active-border-color: #FCA311;
   color: #262b30;
 }
+.list-group .active:hover {
+  background-color: #FCA311;
+}
 
 /*
 =================================================
@@ -151,6 +167,9 @@ nav a {
                 ENTRIES VIEW
 =================================================
 */
+#entries-view .edit-entry-button-wrapper {
+  margin-top: 0.5rem;
+}
 #entries-view #entries-calendar-container {
   padding: 0.75em;
   border-radius: 0.5em;
@@ -208,35 +227,173 @@ nav a {
                 PROGRAM VIEW
 =================================================
 */
-#program-view {
+#program-view #program-view-header-wrapper {
   background-color: #262b30;
   border-radius: 0.5em;
   padding: 1rem;
   margin-top: 0.5rem;
 }
-#program-view #program-view-header {
-  padding: 0.5rem;
-  padding-left: 1rem;
+#program-view #program-view-header-wrapper .program-card {
+  margin-top: 1rem;
 }
-#program-view #program-view-header .row {
-  padding-left: 0.75rem;
-}
-#program-view #program-view-header .text-bg-success {
-  background-color: #FCA311 !important;
-  color: #262b30 !important;
-}
-#program-view #program-view-header .badge {
-  margin-top: 0.5rem;
-  font-size: 0.75rem;
-}
-#program-view #program-view-header .badge:hover {
+#program-view #program-view-header-wrapper .program-card .list-group-item:hover {
   cursor: pointer;
 }
-#program-view #program-view-buttons {
+#program-view #program-view-header-wrapper #program-view-header {
+  padding-left: 0.75rem;
+}
+#program-view #program-view-header-wrapper #program-view-header .row {
+  padding-left: 0.75rem;
+}
+#program-view #program-view-header-wrapper #program-view-header .text-bg-success {
+  background-color: #d88b0f !important;
+  color: #262b30 !important;
+}
+#program-view #program-view-header-wrapper #program-view-header .badge {
+  margin-top: 0.5rem;
+  font-size: 0.7rem;
+}
+#program-view #program-view-header-wrapper #program-view-header .badge:hover {
+  cursor: pointer;
+}
+#program-view #program-view-header-wrapper #program-view-buttons {
   align-self: center;
 }
-#program-view #program-view-container {
+#program-view #program-view-header-wrapper #program-view-description {
+  margin-top: 0.5rem;
+}
+#program-view #pvWorkoutContainer {
+  background-color: #262b30;
+  border-radius: 0.5em;
+  padding: 1rem;
+  margin-top: 0.5rem;
+}
+#program-view #pvWorkoutContainer .pv-workout-description {
+  margin-top: 0.5rem;
+}
+#program-view #pvWorkoutContainer table thead {
+  --bs-table-color: #FCA311;
+}
+#program-view #pvWorkoutContainer table td .add-workout-button:hover {
+  color: #FCA311;
+}
+#program-view #pvWorkoutContainer table td .remove-workout-button:hover {
+  color: #dc3545;
+}
+#program-view #pvWorkoutContainer table td svg:hover {
+  cursor: pointer;
+}
+#program-view #pvExerciseContainer {
+  background-color: #262b30;
+  border-radius: 0.5em;
+  padding: 1rem;
+  margin-top: 0.5rem;
+}
+#program-view #pvExerciseContainer .workout-edit-button .btn {
+  align-self: center;
+}
+#program-view #pvExerciseContainer .workout-helptext {
+  margin-top: 0.5rem;
+}
+#program-view #pvExerciseContainer .pvWorkoutExerciseLink:hover {
+  cursor: pointer;
+  color: #FCA311;
+}
+#program-view #pvExerciseContainer #pvAddExerciseFormContainer {
   margin-top: 1rem;
+}
+#program-view #pvExerciseContainer #pvAddExerciseFormContainer .add-exercise-button {
+  text-align: center;
+}
+#program-view #pvExerciseContainer #pvAddExerciseFormContainer .exercise-search-bar {
+  margin-top: 1rem;
+}
+#program-view #pvExerciseContainer #pvAddExerciseFormContainer .exercise-form {
+  margin-top: 0.5rem;
+}
+#program-view #pvExerciseContainer #pvAddExerciseFormContainer .exercise-form-footer {
+  margin-top: 0.5rem;
+}
+#program-view #pvExerciseContainer #pvAddExerciseFormContainer .exercise-form-footer .btn {
+  margin-left: 0.5rem;
+}
+#program-view #pvExerciseContainer #pvExerciseHelptext, #program-view #pvExerciseContainer #pvWkFmHelptext, #program-view #pvExerciseContainer #pvWkFmWrapper {
+  margin-top: 0.5rem;
+}
+#program-view #pvExerciseContainer #pvWkFmSlWrapper {
+  margin-top: 0.5rem;
+}
+#program-view #pvExerciseContainer #pvWkFmSlWrapper .btn {
+  margin-top: 1rem;
+  text-align: right;
+}
+#program-view #pvExerciseContainer #pvWorkoutEditFormWrapper {
+  margin-top: 1rem;
+}
+#program-view #pvExerciseContainer #pvWorkoutEditFormWrapper #pvWkEdFrmRBtns .btn {
+  margin-left: 0.5rem;
+}
+
+/*
+=================================================
+                EXERCISE VIEW
+=================================================
+*/
+#exercises-view #exHeader {
+  padding: 0.75rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.75rem;
+  background-color: #262b30;
+  border-radius: 0.5rem;
+  color: white;
+}
+#exercises-view #exHeader .text-bg-info {
+  background-color: #d88b0f !important;
+  color: #262b30 !important;
+}
+#exercises-view #exHeader #exHeaderWorkouts {
+  margin-top: 0.5rem;
+}
+#exercises-view #exHeader #evExerciseBodyparts span {
+  margin-right: 0.25rem;
+}
+#exercises-view #exHeader #evExerciseDescription {
+  margin-top: 0.5rem;
+}
+#exercises-view #exHeader #exEditExerciseButtons .btn {
+  margin-left: 0.5rem;
+}
+#exercises-view #exHeader #evEditExerciseForm {
+  margin-top: 0.5rem;
+}
+#exercises-view #exContentWrapper {
+  background-color: #262b30;
+  border-radius: 0.5em;
+  padding: 1rem;
+  margin-top: 0.5rem;
+}
+#exercises-view #exContentWrapper table td span:hover {
+  cursor: pointer;
+  color: #FCA311;
+}
+#exercises-view #exContentWrapper #evTableContainer {
+  margin-top: 0.5rem;
+}
+#exercises-view #exContentWrapper #exFormsButtonWrapper, #exercises-view #exContentWrapper #exFormResetButton {
+  max-width: 130px;
+}
+#exercises-view #exContentWrapper #exTableButtonWrapper {
+  margin-top: 0.5rem;
+}
+#exercises-view #exContentWrapper #exTableButtonWrapper .btn {
+  margin-left: 0.5rem;
+}
+#exercises-view #exContentWrapper .display-6 {
+  margin-top: 0.5rem;
+}
+#exercises-view #exContentWrapper #exEntryListContainer {
+  white-space: pre-wrap;
+  margin-top: 0.5rem;
 }
 
 /*
@@ -244,7 +401,7 @@ nav a {
                 MOBILE STYLES
 =================================================
 */
-@media (max-width: 990px) {
+@media (max-width: 992px) {
   /*
   =================================================
                   JOURNAL VIEW
@@ -320,7 +477,7 @@ nav a {
                 DESKTOP STYLES
 =================================================
 */
-@media (min-width: 990px) {
+@media (min-width: 992px) {
   html {
     overflow-y: scroll;
   }

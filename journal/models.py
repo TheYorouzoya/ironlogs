@@ -146,7 +146,8 @@ class Exercise(models.Model):
                     "id": bodypart.id,
                     "name": bodypart.name
                 } for bodypart in self.body_part.all()
-            ]
+            ],
+            "description": self.description
         }
 
     def __str__(self):

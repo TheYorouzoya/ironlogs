@@ -7,13 +7,14 @@
  */
 
 // Initialize program view containers
-let pvHeader, pvButtons, pvDescription, pvForms, pvContent, days;
+let pvContainer, pvHeader, pvButtons, pvDescription, pvForms, pvContent, days;
 
 /**
  * Initializes all the Program View main container variables and a days array containing
  * the 7 days of the week as strings.
  */
 function pv_init() {
+    pvContainer = document.querySelector('#program-view');
     pvHeader = document.querySelector('#program-view-header');
     pvButtons = document.querySelector('#program-view-buttons');
     pvDescription = document.querySelector('#program-view-description');
@@ -45,6 +46,22 @@ function emptyProgramView() {
     pvDescription.innerHTML = "";
     pvForms.innerHTML = "";
     pvContent.innerHTML = "";
+}
+
+function hideProgramView() {
+    pvContainer.style.display = "none";
+}
+
+function showProgramView() {
+    pvContainer.style.display = "block";
+}
+
+function togglePvExerciseContainer(flag) {
+    let display = "none";
+
+    if (flag) display = "block";
+
+    document.querySelector('#pvExerciseContainerWrapper').style.display = display;
 }
 
 /*
@@ -88,6 +105,12 @@ async function pv_loadAllPrograms() {
 
     // Update Header
     pvHeader.textContent = "Your Programs";
+
+    if (data["programs"] === '') {
+        pvDescription.textContent = "You have no programs. Click the 'Add New Program' " +
+                                    "to create a new program.";
+        return;
+    }
 
     // Initialize program container
     const program_container = document.createElement('div');
@@ -137,7 +160,7 @@ async function pv_loadAllPrograms() {
 
     // Append programs to page
     program_container.append(list_container);
-    pvContent.append(program_container);
+    pvDescription.append(program_container);
 }
 
 
@@ -221,13 +244,26 @@ async function pv_loadProgram(pId) {
     workoutContainer.dataset.programId = pId;
     workoutContainer.dataset.programName = program.name;
 
-    pvContent.append(workoutContainer);
+    const workoutContainerWrapper = document.createElement('div');
+    workoutContainerWrapper.classList.add("col");
+    workoutContainerWrapper.append(workoutContainer);
 
     // exercise container to store exercises within a workout
     const exerciseContainer = document.createElement('div');
     exerciseContainer.setAttribute("id", "pvExerciseContainer");
 
-    pvContent.append(exerciseContainer);
+    const exerciseContainerWrapper = document.createElement('div');
+    exerciseContainerWrapper.setAttribute("id", "pvExerciseContainerWrapper");
+    exerciseContainerWrapper.setAttribute("style", "display: none;");
+    exerciseContainerWrapper.classList.add("col-lg-8");
+    exerciseContainerWrapper.append(exerciseContainer);
+
+    const pvContentWrapper = document.createElement('div');
+    pvContentWrapper.classList.add("row");
+
+    pvContentWrapper.append(workoutContainerWrapper, exerciseContainerWrapper);
+
+    pvContent.append(pvContentWrapper);
 
     // // load all the workouts within the program
     await pv_loadWorkouts(pId);
@@ -337,9 +373,8 @@ function pv_displayAddProgramForm() {
             loadProgramView();
         }
     });
-    submitButton.classList.add("align-self-end");
 
-    const cancelButton = returnButton("info", "Cancel", function () {
+    const cancelButton = returnButton("danger", "Cancel", function () {
         // return to program view if user clicks Cancel
         history.pushState(
             {
@@ -350,10 +385,19 @@ function pv_displayAddProgramForm() {
         )
         loadProgramView();
     });
-    cancelButton.classList.add("align-self-end");
 
     const btnCont = document.createElement('div');
-    btnCont.append(submitButton, cancelButton);
+    btnCont.classList.add("row");
+    
+    const submitWrapper = document.createElement('div');
+    submitWrapper.classList.add("col");
+    submitWrapper.append(submitButton);
+    
+    const cancelWrapper = document.createElement('div');
+    cancelWrapper.classList.add("col", "d-flex", "justify-content-end");
+    cancelWrapper.append(cancelButton);
+
+    btnCont.append(submitWrapper, cancelWrapper);
 
     // Append to form and display
     programForm.append(nameInput, descriptionInput, btnCont);
@@ -486,7 +530,8 @@ function pv_loadProgramEditForm(program) {
 
     const rightbtns = document.createElement('div');
     rightbtns.classList.add("col", "d-flex", "justify-content-end");
-    rightbtns.append(submitButton, cancelButton);
+    rightbtns.append(submitButton);
+    pvButtons.append(cancelButton);
     btnCont.append(delCont, rightbtns);
 
     // Append everything to view
@@ -601,9 +646,9 @@ async function pv_loadWorkouts(programId) {
     workoutContainer.append(workoutHeader);
 
     const helptext= document.createElement('div');
+    helptext.classList.add("pv-workout-description");
     helptext.innerHTML = "<p>Each day in your program corresponds to a workout. "
         + "Each workout, then, has a bunch of exercises in it. "
-        + "Here's a table of all the workouts in this program. "
         + "Click on a row to look at all the exercises within the workout.</p>";
     
     workoutContainer.append(helptext);
@@ -611,7 +656,14 @@ async function pv_loadWorkouts(programId) {
     // generate workout table and append it
     const table = pv_returnWorkoutTable(workouts);
     table.setAttribute("id", "pv-workout-table");
-    workoutContainer.append(table);
+
+    const tableWrapper = document.createElement("div");
+    tableWrapper.classList.add("workout-table");
+
+    tableWrapper.append(table);
+    workoutContainer.append(tableWrapper);
+
+    togglePvExerciseContainer(false);
 }
 
 /**
@@ -668,13 +720,13 @@ function pv_returnWorkoutTable(workouts) {
     head.appendChild(row);
     table.appendChild(head);
 
-    // fetch program details for history state
+    // fetch program details for updating history state
     const pId = document.querySelector('#pvWorkoutContainer').dataset.programId;
     const pName = document.querySelector('#pvWorkoutContainer').dataset.programName;
 
 
     // Listener for when an empty row is clicked
-    var rowEmptyClicked = function (event) {
+    var rowEmptyClicked = function () {
         // prevent duplicate history pushes
         if (!window.location.href.endsWith('add-workout')) {
             history.pushState(
@@ -709,6 +761,7 @@ function pv_returnWorkoutTable(workouts) {
         workout.setAttribute("id", "row-workout-" + i);
         workout.classList.add("text-center");
         workout.innerHTML = ADD_BUTTON_SVG;
+        workout.querySelector('svg').classList.add("add-workout-button");
 
         row.append(day, workout);
 
@@ -729,32 +782,7 @@ function pv_returnWorkoutTable(workouts) {
             const column = row.querySelector('#row-workout-' + day["dayNum"]);
             column.textContent = workout["name"];
 
-            // add button to remove workout from the program
-            const removeButton = document.createElement('span');
-            removeButton.innerHTML = REMOVE_BUTTON_SVG;
-            removeButton.addEventListener('click', async function (event) {
-                // stop event propagation so that the row listener doesn't activate
-                event.stopPropagation();
-
-                if (await pv_removeWorkoutFromTable(this)) {  // on successful removal
-                    history.replaceState(
-                        {
-                            "view": PROGRAM_VIEW,
-                            "program": pId
-                        },
-                        '',
-                        `#program/${pName}`
-                    );
-                    pv_loadWorkouts(pId);               // reload workouts table
-                }
-            });
-            column.append(removeButton);
-
-            // remove the empty row listener
-            row.removeEventListener('click', rowEmptyClicked);
-
-            // add new listener to display exercises for a populated row
-            row.addEventListener('click', function () {
+            var rowFullClicked = function () {
                 let workoutName = this.childNodes[1].textContent.trim();
                 // prevent duplicate history pushes
                 if (!(decodeURI(window.location.href).endsWith(workoutName))) {
@@ -769,7 +797,36 @@ function pv_returnWorkoutTable(workouts) {
                     );
                 }
                 pv_displayWorkoutExercises(this);
-            })
+            }
+
+            // add button to remove workout from the program
+            const removeButton = document.createElement('span');
+            removeButton.innerHTML = REMOVE_BUTTON_SVG;
+            removeButton.querySelector('svg').classList.add("remove-workout-button");
+            removeButton.addEventListener('click', function (event) {
+                // stop event propagation so that the row listener doesn't activate
+                event.stopImmediatePropagation();
+
+                const currentRow = this.parentNode.parentNode;
+
+                if (pv_removeWorkoutFromTable(this)) {  // on successful removal
+                    // remove workout listener
+                    currentRow.removeEventListener('click', rowFullClicked);
+                    // add empty row listener
+                    currentRow.addEventListener('click', rowEmptyClicked);
+                    // erase dataset from row
+                    currentRow.removeAttribute('data-workout-id');
+                    // replace column with add button
+                    this.parentNode.innerHTML = ADD_BUTTON_SVG;
+                }
+            });
+            column.append(removeButton);
+
+            // remove the empty row listener
+            row.removeEventListener('click', rowEmptyClicked);
+
+            // add new listener to display exercises for a populated row
+            row.addEventListener('click', rowFullClicked)
         })
     });
 
@@ -791,6 +848,10 @@ async function pv_removeWorkoutFromTable(button) {
     const row = button.parentNode.parentNode;
     const workoutId = row.dataset.workoutId;
     const dayNum = row.dataset.day;
+
+    const exerciseContainer = document.querySelector('#pvExerciseContainer');
+    currentWorkoutId = exerciseContainer.dataset.workoutId;
+    currentWorkoutDay = exerciseContainer.dataset.day;
     
     // submit delete day request to server
     const apiResponse = await fetch(`workout/${workoutId}/day`, {
@@ -808,10 +869,16 @@ async function pv_removeWorkoutFromTable(button) {
     if (data.error) {   // on failure
         displayMessage(data.error, false);
         return false;
-    } else {            // on success
-        displayMessage(data.message, true);
-        return true;
     }
+    // on success
+    displayMessage(data.message, true);
+
+    if (workoutId === currentWorkoutId && dayNum === currentWorkoutDay) {
+        togglePvExerciseContainer(false);
+    }
+
+    return true;
+
 }
 
 
@@ -831,11 +898,15 @@ async function pv_displayWorkoutExercises(row) {
     // update container to wipe any previous entries
     const exerciseContainer = document.querySelector('#pvExerciseContainer');
     exerciseContainer.dataset.workoutId = workoutId;
+    exerciseContainer.dataset.day = day;
     exerciseContainer.innerHTML = `
-        <div id="exerciseContainerHeader" class="row d-flex">
-        <div class="display-6 col">${workoutName} workout on ${days[day]}:</div>
+        <div id="exerciseContainerHeader" class="row">
+            <div class="display-6 col">${workoutName} workout on ${days[day]}:</div>
         </div>
-        <p>Below is a list of all the exercises in the workout:</p>`;
+        <div class="workout-helptext">
+            <p>Below is a list of all the exercises in the workout. Click on an exercise to go to
+                the exercise's page.</p>
+        </div>`;
     
     // edit button to allow the user to edit a workout's name
     const editButton = returnButton(
@@ -855,11 +926,14 @@ async function pv_displayWorkoutExercises(row) {
             )
             pv_displayEditWorkoutForm(row);
         }
-        );
-    editButton.classList.add("col-2", "justify-content-end");
-    document.querySelector('#exerciseContainerHeader').append(editButton);
+    );
 
-    exerciseContainer.append(pv_returnAddExerciseForm(row));
+    const editButtonWrapper = document.createElement('div');
+    editButtonWrapper.classList.add("workout-edit-button", "col-2", "justify-content-end", "d-flex");
+    editButtonWrapper.append(editButton);
+    document.querySelector('#exerciseContainerHeader').append(editButtonWrapper);
+
+    // exerciseContainer.append(pv_returnAddExerciseForm(row));
 
     // Fetch all the exercises from the server
     const apiResponse = await fetch(`workout/${workoutId}/exercises`);
@@ -892,7 +966,7 @@ async function pv_displayWorkoutExercises(row) {
         wrapper.classList.add("ms-2", "me-auto");
 
         const exDiv = document.createElement('div');
-        exDiv.classList.add("fw-bold");
+        exDiv.classList.add("fw-bold", "pvWorkoutExerciseLink");
         exDiv.textContent = exercise.name;
 
         // clicking on an exercise in the list takes the user to the exercise page
@@ -907,7 +981,7 @@ async function pv_displayWorkoutExercises(row) {
             )
             toggleView(EXERCISES_VIEW);
             emptyExerciseView();
-            ev_loadExercise(exercise["id"]);
+            ex_loadExercise(exercise["id"]);
         });
 
         wrapper.append(exDiv, exercise.description);
@@ -928,7 +1002,8 @@ async function pv_displayWorkoutExercises(row) {
         listGroup.append(item);
     })
 
-    exerciseContainer.append(listGroup);
+    exerciseContainer.append(listGroup, pv_returnAddExerciseForm(row));
+    togglePvExerciseContainer(true);
 }
 
 
@@ -958,7 +1033,7 @@ function pv_displayEditWorkoutForm(row) {
     const exerciseContainer = document.querySelector('#pvExerciseContainer');
     exerciseContainer.innerHTML = `
         <div id="exerciseContainerHeader" class="row d-flex">
-        <div class="display-6 col">Edit ${workoutName} workout on ${days[day]}:</div>
+        <div class="display-6 col">Edit ${workoutName} workout:</div>
         </div>`;
 
     // Initialize edit workout form
@@ -1034,12 +1109,17 @@ function pv_displayEditWorkoutForm(row) {
     delCont.append(deleteButton);
 
     const rightbtns = document.createElement('div');
+    rightbtns.setAttribute("id", "pvWkEdFrmRBtns");
     rightbtns.classList.add("col", "d-flex", "justify-content-end");
     rightbtns.append(submitButton, cancelButton);
     btnCont.append(delCont, rightbtns);
 
     form.append(nameField, btnCont);
-    exerciseContainer.append(form);
+
+    const formWrapper = document.createElement('div');
+    formWrapper.setAttribute("id", "pvWorkoutEditFormWrapper");
+    formWrapper.append(form);
+    exerciseContainer.append(formWrapper);
 }
 
 
@@ -1136,13 +1216,16 @@ function pv_displayWorkoutForms(clickedRow, workouts) {
     const exerciseContainer = document.querySelector('#pvExerciseContainer');
     
     exerciseContainer.innerHTML = `
-        <div class="display-6">Add Workout on ${clickedRow.dataset.dayName}:</div>
-        Choose from an existing workout:
+        <div class="display-6 pvExerciseHeader">Add Workout on ${clickedRow.dataset.dayName}:</div>
+        <div id="pvExerciseHelptext"> Choose from an existing workout:</div>
         `;
 
     const main_container = document.createElement('div');
+    main_container.setAttribute("id", "pvWorkoutFormContainer");
 
     // a select field where the user can pick an existing workout
+    const sl_wrapper = document.createElement('div');
+    sl_wrapper.setAttribute("id", "pvWkFmSlWrapper");
     const sl_Container = document.createElement('form');
     sl_Container.classList.add("form-control");
 
@@ -1197,7 +1280,8 @@ function pv_displayWorkoutForms(clickedRow, workouts) {
     });
 
     sl_Container.append(sl_label, selectField, submitWorkoutButton);
-    main_container.append(sl_Container);
+    sl_wrapper.append(sl_Container);
+    main_container.append(sl_wrapper);
     
 
     // a form to add a new workout to the program on the selected day
@@ -1234,8 +1318,18 @@ function pv_displayWorkoutForms(clickedRow, workouts) {
         }
     ))
 
-    main_container.append("Or add a new workout:", workoutForm);
+    const workoutFormHelptext = document.createElement('div');
+    workoutFormHelptext.setAttribute("id", "pvWkFmHelptext");
+    workoutFormHelptext.textContent = "Or add a new workout:";
+
+    const workoutFormWrapper = document.createElement('div');
+    workoutFormWrapper.setAttribute("id", "pvWkFmWrapper");
+    workoutFormWrapper.append(workoutForm);
+
+    main_container.append(workoutFormHelptext, workoutFormWrapper);
     exerciseContainer.append(main_container);
+
+    togglePvExerciseContainer(true);
 }
 
 
@@ -1354,12 +1448,15 @@ function pv_returnAddExerciseForm(row) {
             }
         }
     );
+
+    const searchBarWrapper = document.createElement("div");
+    searchBarWrapper.classList.add("exercise-search-bar");
+    searchBarWrapper.append(searchBar);
     // hide search bar until user clicks "Add An Exercise" button
-    searchBar.style.display = "none";
+    searchBarWrapper.style.display = "none";
 
     // initialize exercise forms
     const exerciseForms = document.createElement('div');
-    exerciseForms.classList.add("row");
     exerciseForms.setAttribute("id", "pvExerciseForms");
 
     var bodypartList;
@@ -1381,15 +1478,19 @@ function pv_returnAddExerciseForm(row) {
     // hide submit button until the user clicks "Add An Exercise"
     submitButton.style.display = "none";
 
-    const cancelButton = returnButton("info", "Cancel", function () {
+    const cancelButton = returnButton("danger", "Cancel", function () {
         // clicking Cancel hides all the forms and buttons
         exerciseForms.innerHTML = "";
         submitButton.style.display = "none";
         cancelButton.style.display = "none";
-        searchBar.style.display = "none";
+        searchBarWrapper.style.display = "none";
     })
     // hide Cancel button until the user clicks "Add An Exercise"
     cancelButton.style.display = "none";
+
+    const footerButtonWrapper = document.createElement('div');
+    footerButtonWrapper.append(submitButton, cancelButton);
+    footerButtonWrapper.classList.add("exercise-form-footer", "d-flex", "justify-content-end");
 
     // The "Add An Exercise" button
     const addButton = returnButton("info", "Add An Exercise", function () {
@@ -1399,10 +1500,14 @@ function pv_returnAddExerciseForm(row) {
         // display all the buttons and the search bar
         submitButton.style.display = "inline-block";
         cancelButton.style.display = "inline-block";
-        searchBar.style.display = "flex";
+        searchBarWrapper.style.display = "block";
     });
 
-    container.append(addButton, searchBar, exerciseForms, submitButton, cancelButton);
+    const addButtonWrapper = document.createElement('div');
+    addButtonWrapper.classList.add("add-exercise-button");
+    addButtonWrapper.append(addButton);
+
+    container.append(addButtonWrapper, searchBarWrapper, exerciseForms, footerButtonWrapper);
     return container;
 }
 

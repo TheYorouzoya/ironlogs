@@ -1,14 +1,15 @@
 // various main containers for the view
-let evHeader, evForms, evContent;
+let exHeader, exForms, exContent, exWrapper;
 
 /**
  * Initalizes the various main containers for the view to their respective
  * variables.
  */
-function ev_init() {
-    evHeader = document.querySelector('#evHeader');
-    evForms = document.querySelector('#evForms');
-    evContent = document.querySelector('#evContent');
+function ex_init() {
+    exHeader = document.querySelector('#exHeader');
+    exForms = document.querySelector('#exForms');
+    exContent = document.querySelector('#exContent');
+    exWrapper = document.querySelector('#exContentWrapper');
 }
 
 /**
@@ -19,7 +20,8 @@ async function loadExerciseView() {
     toggleView(EXERCISES_VIEW);
 
     emptyExerciseView();
-    await ev_loadAllExercisesTable();
+    await ex_loadAllExercisesTable();
+    exWrapper.style.display = "block";
 }
 
 
@@ -27,21 +29,33 @@ async function loadExerciseView() {
  * Empties the exercise view's main containers' contents and listeners.
  */
 function emptyExerciseView() {
-    evHeader.innerHTML = "";
-    evForms.innerHTML = "";
-    evContent.innerHTML = "";
+    exHeader.innerHTML = "";
+    exForms.innerHTML = "";
+    exContent.innerHTML = "";
 }
 
+/**
+ * Populates the Exercise View's header with the given heading string
+ * @param {String} headingText the string to be displayed in the header
+ */
+function ex_populateHeader(headingText) {
+    exHeader.innerHTML = "";
+    const heading = document.createElement('div');
+    heading.classList.add("display-6");
+    heading.textContent = headingText;
+    exHeader.append(heading);
+}
 
 /**
  * Loads all of current user's exercises in a table (sorted alphabetically).
  */
-async function ev_loadAllExercisesTable() {
+async function ex_loadAllExercisesTable() {
     const DEFAULT_PAGE_NUMBER = 1;
     const DEFAULT_QUERY = "";
 
-    ev_loadDefaultForms();
-    await ev_loadExerciseTableWithGivenQuery(DEFAULT_QUERY, DEFAULT_PAGE_NUMBER);
+    ex_loadDefaultForms();
+    ex_populateHeader("All Exercises:");
+    await ex_loadExerciseTableWithGivenQuery(DEFAULT_QUERY, DEFAULT_PAGE_NUMBER);
 }
 
 
@@ -75,7 +89,7 @@ async function ev_loadAllExercisesTable() {
  * const query = "bodypart=9b452868-8ce0-45e7-b97f-95315018d4a4";
  * const page = 1;
  * // loads exercise table with all exercises that have the given bodypart
- * ev_loadExerciseTableWithGivenQuery(query, page);
+ * ex_loadExerciseTableWithGivenQuery(query, page);
  * ```
  * @example
  * ```JavaScript
@@ -86,11 +100,11 @@ async function ev_loadAllExercisesTable() {
  * const page = 1;
  * // loads exercise table with all exercises that have the given bodypart and
  * // are part of the given program
- * ev_loadExerciseTableWithGivenQuery(query, page);
+ * ex_loadExerciseTableWithGivenQuery(query, page);
  * ```
  * 
  */
-async function ev_loadExerciseTableWithGivenQuery(filterQuery, pageNum) {
+async function ex_loadExerciseTableWithGivenQuery(filterQuery, pageNum) {
     // fetch exercise data from the server
     const apiResponse = await fetch(`exercises/filter/?pageNum=${pageNum}&${filterQuery}`);
     const data = await apiResponse.json();
@@ -102,7 +116,7 @@ async function ev_loadExerciseTableWithGivenQuery(filterQuery, pageNum) {
     }
 
     // pass the data to the table generator
-    ev_loadExerciseTable(data, pageNum, filterQuery);
+    ex_loadExerciseTable(data, pageNum, filterQuery);
 }
 
 
@@ -115,45 +129,32 @@ async function ev_loadExerciseTableWithGivenQuery(filterQuery, pageNum) {
  * @param {Number} currentPage  the current page number 
  * @param {String} currentQuery the current query string formatted as [QUERY_TYPE]=[QUERY_ID]
  * 
- * @see {@link ev_loadExerciseTableWithGivenQuery} for details regarding query structure
+ * @see {@link ex_loadExerciseTableWithGivenQuery} for details regarding query structure
  */
-function ev_loadExerciseTable(ex_Data, currentPage, currentQuery) {
+function ex_loadExerciseTable(ex_Data, currentPage, currentQuery) {
     // empty the main container
-    evContent.innerHTML = "";
-
-    // button that resets the exercise table to show all exercises
-    const resetButton = returnButton("info", "All Exercises", function () {
-        // prevent duplicate history pushes
-        if (!decodeURI(window.location.href).trim().endsWith('#exercises')) {
-            // push default view state
-            history.pushState(
-                {
-                    "view": EXERCISES_VIEW,
-                },
-                '',
-                `#exercises`
-            )
-        }
-        ev_loadAllExercisesTable();
-    });
-    evContent.append(resetButton);
+    exContent.innerHTML = "";
 
     // table container to hold the table
     const tContainer = document.createElement('div');
     tContainer.setAttribute("id", "evTableContainer");
+    
+    const tWrapper = document.createElement('div');
+    tWrapper.classList.add("table-responsive");
 
     // the table itself
     const table = document.createElement('table');
     table.classList.add("table", "table-hover");
+    table.setAttribute("id", "exTable")
     
     // initialize table header
     const tHead = document.createElement('thead');
     tHead.innerHTML = `
         <tr>
-            <th scope="col">Exercise</th>
-            <th scope="col">Body Part</th>
-            <th scope="col">Workout</th>
-            <th scope="col">Program</th>
+            <th scope="col" data-id="0">Exercise</th>
+            <th scope="col" data-id="1">Body Part</th>
+            <th scope="col" data-id="2">Workout</th>
+            <th scope="col" data-id="3">Program</th>
         </tr>
     `;
 
@@ -164,9 +165,10 @@ function ev_loadExerciseTable(ex_Data, currentPage, currentQuery) {
         // initialize table row and cells
         const row = document.createElement('tr');
         let td = document.createElement('td');
+        td.classList.add("text-nowrap");
         
         // initailize cell container with exercise name and id
-        const cont = document.createElement('div');
+        const cont = document.createElement('span');
         cont.dataset.exerciseId = exercise["id"];
         cont.textContent = exercise["name"];
 
@@ -188,28 +190,34 @@ function ev_loadExerciseTable(ex_Data, currentPage, currentQuery) {
                 `#exercises/${exName}`
             )
             // load exercise
-            ev_loadExercise(exId);
+            ex_loadExercise(exId);
         });
+
+        const separator = document.createElement("span");
+        separator.textContent = ", ";
         
         // initialize all bodypart cells in the exercise
         td = document.createElement('td');
         exercise["bodyparts"].forEach(bodypart => {
-            td.append(ev_returnExerciseTableDataCell(bodypart, "bodypart"));
+            td.append(ex_returnExerciseTableDataCell(bodypart, "bodypart"), separator.cloneNode(true));
         });
+        if (exercise["bodyparts"].length > 0) td.removeChild(td.lastChild);
         row.append(td);
 
         // initialize all workout cells in the exercise
         td = document.createElement('td');
         exercise["workouts"].forEach(workout => {
-            td.append(ev_returnExerciseTableDataCell(workout, "workout"));
+            td.append(ex_returnExerciseTableDataCell(workout, "workout"), separator.cloneNode(true));
         });
+        if (exercise["workouts"].length > 0) td.removeChild(td.lastChild);
         row.append(td);
 
         // initialize all program cells in the exercise
         td = document.createElement('td');
         exercise["programs"].forEach(program => {
-            td.append(ev_returnExerciseTableDataCell(program, "program"));
+            td.append(ex_returnExerciseTableDataCell(program, "program"), separator.cloneNode(true));
         });
+        if (exercise["programs"].length > 0) td.removeChild(td.lastChild);
         row.append(td);
         
         // append row to body
@@ -218,10 +226,11 @@ function ev_loadExerciseTable(ex_Data, currentPage, currentQuery) {
 
     // append all table contents
     table.append(tHead, tBody);
-    tContainer.append(table);
+    tWrapper.append(table);
 
     // initialize "Next" and "Previous" button container
     const buttonContainer = document.createElement('div');
+    buttonContainer.setAttribute("id", "exTableButtonWrapper");
     buttonContainer.classList.add("d-flex", "justify-content-end");
 
     // If a previous page in the query exists
@@ -244,7 +253,7 @@ function ev_loadExerciseTable(ex_Data, currentPage, currentQuery) {
             );
 
             // load table with previous page entries
-            ev_loadExerciseTableWithGivenQuery(currentQuery, currentPage - 1);
+            ex_loadExerciseTableWithGivenQuery(currentQuery, currentPage - 1);
         });
         buttonContainer.append(previous);
     }
@@ -268,13 +277,13 @@ function ev_loadExerciseTable(ex_Data, currentPage, currentQuery) {
             );
 
             // load table with next page entries
-            ev_loadExerciseTableWithGivenQuery(currentQuery, currentPage + 1);
+            ex_loadExerciseTableWithGivenQuery(currentQuery, currentPage + 1);
         });
         buttonContainer.append(next);
     }
 
-    tContainer.append(buttonContainer);
-    evContent.append(tContainer);
+    tContainer.append(tWrapper, buttonContainer);
+    exContent.append(tContainer);
 }
 
 
@@ -287,11 +296,12 @@ function ev_loadExerciseTable(ex_Data, currentPage, currentQuery) {
  * @param {String}                       queryPrefix prefix indicating whether the data is
  *                                                   a workout, program, or a bodypart               
  */
-function ev_returnExerciseTableDataCell(data, queryPrefix) {
+function ex_returnExerciseTableDataCell(data, queryPrefix) {
     // Initialize container
     const container = document.createElement('span');
     container.dataset.id = data["id"];
     container.textContent = data["name"];
+    container.classList.add("text-nowrap");
 
     // Add listener to load the table with this object as a query parameter
     container.addEventListener('click', function (event) {
@@ -300,6 +310,7 @@ function ev_returnExerciseTableDataCell(data, queryPrefix) {
 
         const QUERY = `${queryPrefix}=${this.dataset.id}`;
         const PAGE_NUM = 1;
+        const exName = this.textContent.trim();
         
         history.pushState(
             {
@@ -312,31 +323,70 @@ function ev_returnExerciseTableDataCell(data, queryPrefix) {
         )
         
         // load table with new query parameters
-        ev_loadExerciseTableWithGivenQuery(QUERY, PAGE_NUM);
+        ex_populateHeader(exName + " Exercises:");
+        ex_loadExerciseTableWithGivenQuery(QUERY, PAGE_NUM);
     });
     return container;
 }
 
 
 /**
- * Loads the exercise lookup search bar into the evForms container.
+ * Loads the exercise lookup search bar into the exForms container.
  * 
  * The search bar fetches 7 most relevant exercises for the query as it being typed
  * in. Clicking on an exercise in the list takes the user to the exercise's main page.
  */
-function ev_loadDefaultForms() {
+function ex_loadDefaultForms() {
     // empty container
-    evForms.innerHTML = "";
+    exForms.innerHTML = "";
 
     // listener which loads the exercise when a search result is clicked
     const searchBarListener = function (target) {
         const exerciseId = target.dataset.exerciseId;
-        ev_loadExercise(exerciseId);
+        const exerciseName = target.textContent.trim();
+        history.pushState(
+            {
+                "view": EXERCISES_VIEW,
+                "exercise": exerciseId
+            },
+            '',
+            `#exercises/${exerciseName}`
+        )
+        ex_loadExercise(exerciseId);
     };
 
     // generate search bar with listener and append
     const searchForm = util_returnAutocompleteExerciseSearchForm("evSearchResults", searchBarListener);
-    evForms.append(searchForm);
+    searchForm.classList.remove("form-control");
+    searchForm.querySelector('.search-bar-heading').remove();
+
+    const formWrapper = document.createElement("div");
+    formWrapper.classList.add("flex-grow-1", "col");
+    formWrapper.append(searchForm);
+
+    // button that resets the exercise table to show all exercises
+    const resetButton = returnButton("info", "Reset Table", function () {
+        // prevent duplicate history pushes
+        if (!decodeURI(window.location.href).trim().endsWith('#exercises')) {
+            // push default view state
+            history.pushState(
+                {
+                    "view": EXERCISES_VIEW,
+                },
+                '',
+                `#exercises`
+            )
+        }
+        ex_loadAllExercisesTable();
+    });
+    resetButton.setAttribute("id", "exFormResetButton");
+
+    const btnWrapper = document.createElement("div");
+    btnWrapper.classList.add("col-4");
+    btnWrapper.setAttribute("id", "exFormsButtonWrapper");
+    btnWrapper.append(resetButton);
+
+    exForms.append(formWrapper, btnWrapper);
 }
 
 
@@ -353,7 +403,8 @@ function ev_loadDefaultForms() {
  * 
  * @param {String} exerciseId UUID of the exercise
  */
-async function ev_loadExercise(exerciseId) {
+async function ex_loadExercise(exerciseId) {
+    exWrapper.style.display = "block";
     // fetch exercise data from the server
     const apiResponse = await fetch(`exercise/?id=${exerciseId}`)
     const data = await apiResponse.json();
@@ -388,7 +439,7 @@ async function ev_loadExercise(exerciseId) {
     // initialize bodypart badges
     const bodyparts = document.createElement('div');
     bodyparts.setAttribute("id", "evExerciseBodyparts");
-    exercise["bodypart"].forEach(bodypart => {
+    exercise["bodyparts"].forEach(bodypart => {
         const span = document.createElement('span');
         span.classList.add("badge", "rounded-pill", "text-bg-info");
         span.dataset.bodypartId = bodypart["id"];
@@ -405,36 +456,60 @@ async function ev_loadExercise(exerciseId) {
 
     // initialize edit exercise button
     const editExerciseButton = returnButton("info", "Edit", function() {
-        ev_displayEditExerciseForm();
+        ex_displayEditExerciseForm();
     });
     wrapper.append(editExerciseButton);
-
-    // initialize button which returns the user to all exercises table
-    const allExercisesButton = returnButton("info", "All Exercises", function () {
-        history.pushState(
-            {
-                "view": EXERCISES_VIEW,
-            },
-            '',
-            '#exercises/all'
-        );
-        ev_loadAllExercisesTable();
-    });
-    wrapper.append(allExercisesButton);
     
     // append wrapper to header
     subhead2.append(wrapper);
-    subhead2.classList.add("d-flex", "justify-content-end", "col");
+    subhead2.classList.add("d-flex", "justify-content-end", "col-3");
     header.append(subhead1, subhead2);
 
-    // initialize exercise body
-    const body = document.createElement('div');
+    const separator = document.createElement("span");
+    separator.textContent = ", ";
+
+    const wkprWrapper = document.createElement('div');
+    wkprWrapper.classList.add("fst-italic", "fw-light");
+
+    const exWorkouts = document.createElement('div');
+    exWorkouts.setAttribute("id", "exHeaderWorkouts");
+    const workouts = exercise["workouts"];
+    if (workouts.length > 0) {
+        exWorkouts.append("Workouts: ");
+        workouts.forEach(workout => {
+            const workoutText = document.createElement('span');
+            workoutText.textContent = workout.name;
+            workoutText.dataset.workoutId = workout.id;
+            exWorkouts.append(workoutText, separator.cloneNode(true));
+        });
+        exWorkouts.removeChild(exWorkouts.lastChild);
+    }
+
+    const exPrograms = document.createElement('div');
+    exPrograms.setAttribute("id", "exHeaderPrograms");
+    const programs = exercise["programs"];
+    if (programs.length > 0) {
+        exPrograms.append("Programs: ");
+        programs.forEach(program => {
+            const programText = document.createElement('span');
+            programText.textContent = program.name;
+            programText.dataset.programId = program.id;
+            exPrograms.append(programText, separator.cloneNode(true));
+        });
+        exPrograms.removeChild(exPrograms.lastChild);
+    }
+    
+    wkprWrapper.append(exWorkouts, exPrograms);
+    header.append(wkprWrapper);
 
     // initialize exercise description
     const exerciseDescription = document.createElement('div');
     exerciseDescription.setAttribute("id", "evExerciseDescription");
     exerciseDescription.innerHTML = exercise["description"];
-    body.append(exerciseDescription);
+    header.append(exerciseDescription);
+
+    // initialize exercise body
+    const body = document.createElement('div');
 
     // initialize exercise graph
     const graphContainer = document.createElement('div');
@@ -444,21 +519,65 @@ async function ev_loadExercise(exerciseId) {
     graphContainer.append(chart);
     body.append(graphContainer);
 
-    evContent.append(header, body);
-    displayExerciseChart(exerciseId);
+    exHeader.append(header);
+    exContent.append(body);
+
+    const entryData = await ex_fetchExerciseEntryData(exerciseId);
+    
+    // don't initialize the chart or entries if entry data is empty
+    if (entryData["entries"] == false) {
+        document.querySelector('#exerciseChartContainer').textContent = "No journal entries exist for this exercise.";
+        return;
+    }
+
+    ex_displayExerciseChart(entryData);
+    ex_displayExerciseEntries(entryData);
+}
+
+
+async function ex_fetchExerciseEntryData(exerciseId) {
+    // fetch entry data
+    const apiResponse = await fetch(`entry/all/${exerciseId}`)
+    const data = await apiResponse.json();
+    
+    // bail if an error occurs
+    if (data.error) {
+        displayMessage(data.error, false);
+        return;
+    }
+
+    return data;
+}
+
+function ex_displayExerciseEntries(data) {
+    const entryContainer = document.createElement('ul');
+    entryContainer.classList.add("list-group", "list-group-flush");
+    entryContainer.setAttribute("id", "exEntryListContainer")
+    
+    const header = document.createElement('div');
+    header.classList.add("display-6");
+    header.textContent = `Last ${data["entries"].length} Entries:`;
+
+    data["entries"].forEach(entry => {
+        const entryItem = document.createElement('li');
+        entryItem.classList.add("list-group-item");
+        entryItem.textContent = `${entry.date}:   ${entry.sets} sets of ${entry.reps} reps for ${entry.intensity}kgs`;
+        entryContainer.append(entryItem);
+    })
+    exContent.append(header, entryContainer);
 }
 
 
 /**
- * Erases any previous contents in evForms container and displays an edit exercise
+ * Erases any previous contents in exForms container and displays an edit exercise
  * form there, prepopulated with the exercise's current data.
  * 
  * 
  * The edit form is just a pre-populated version of the "Add New Exercise" form.
  */
-async function ev_displayEditExerciseForm() {
+async function ex_displayEditExerciseForm() {
     // clear container
-    evForms.innerHTML = "";
+    exForms.innerHTML = "";
 
     // fetch exercise name, id, description, and bodypart from the main page
     const name = document.querySelector('#evExerciseName').textContent.trim();
@@ -487,7 +606,6 @@ async function ev_displayEditExerciseForm() {
 
     // start initializing the edit form
     const formContainer = document.createElement('form');
-    formContainer.classList.add("form-control");
     formContainer.setAttribute("id", "evEditExerciseForm");
     formContainer.dataset.exerciseId = id;
 
@@ -542,24 +660,41 @@ async function ev_displayEditExerciseForm() {
     btnContainer.classList.add("row");
 
     const btnWrapper = document.createElement('div');
-    btnWrapper.classList.add("justify-content-end", "d-flex");
+    btnWrapper.classList.add("justify-content-end", "d-flex", "col");
+    btnWrapper.setAttribute("id", "exEditExerciseButtons");
 
     const submitButton = returnButton("info", "Submit", async function () {
-        if (await ev_submitEditExerciseForm()) {    // upon successful submit
-            ev_loadExercise(id);                    // reload exercise page
+        if (await ex_submitEditExerciseForm()) {    // upon successful submit
+            ex_loadExercise(id);                    // reload exercise page
         }
     });
 
     const cancelButton = returnButton("info", "Cancel", function () {
-        ev_loadExercise(id);
+        ex_loadExercise(id);
     });
 
+    const deleteWrapper = document.createElement('div');
+    deleteWrapper.classList.add("col");
+
+    const deleteButton = returnButton("danger", "Delete Exercise", async function () {
+        if (await ex_deleteExercise()) {
+            loadExerciseView();
+        }
+    })
+    deleteWrapper.append(deleteButton);
+
     btnWrapper.append(submitButton, cancelButton);
-    btnContainer.append(btnWrapper);
+    btnContainer.append(deleteWrapper, btnWrapper);
 
     formContainer.append(exName, bodypartSelectField, exDescription, btnContainer);
-    evForms.append(formContainer);
-    evContent.innerHTML = "";
+    emptyExerciseView();
+
+    const heading = document.createElement('div');
+    heading.classList.add("display-6");
+    heading.textContent = "Edit " + name + ":";
+
+    exWrapper.style.display = "none";
+    exHeader.append(heading, formContainer);
 }
 
 /**
@@ -569,7 +704,7 @@ async function ev_displayEditExerciseForm() {
  * with a bootstrap "is-invalid" class. For a valid submit, the user must provide
  * 
  */
-async function ev_submitEditExerciseForm() {
+async function ex_submitEditExerciseForm() {
     // fetch fields
     const form = document.querySelector('#evEditExerciseForm');
     const name = form.querySelector('#evEditExerciseNameField').value.trim();
@@ -625,7 +760,30 @@ async function ev_submitEditExerciseForm() {
     }
 
     // on successful submit, reload exercise page
-    await ev_loadExercise(id);
+    await ex_loadExercise(id);
+    displayMessage(data.message, true);
+    return true;
+}
+
+
+async function ex_deleteExercise() {
+    const exerciseId = document.getElementById('evEditExerciseForm').dataset.exerciseId;
+
+    const apiResponse = await fetch(`exercise/?id=${exerciseId}`, {
+        method: 'DELETE', 
+        headers: {
+            "X-CSRFToken": CSRF_TOKEN
+        },
+        credentials: 'same-origin'
+    });
+
+    const data = await apiResponse.json();
+
+    if (data.error) {
+        displayMessage(data.error, false);
+        return false;
+    }
+
     displayMessage(data.message, true);
     return true;
 }
@@ -635,24 +793,13 @@ async function ev_submitEditExerciseForm() {
  * Displays a Chart.js chart of the exercise's last 50 entries on a X-Y line graph
  * showcasing intensity vs entry timestamp data.
  * 
- * @param {String} exerciseId UUID of the exercise
+ * @param {Entry[]} data entry data to be displayed
  */
-async function displayExerciseChart(exerciseId) {
-    // fetch entry data
-    const apiResponse = await fetch(`entry/all/${exerciseId}`)
-    const data = await apiResponse.json();
-    
-    // bail if an error occurs
-    if (data.error) {
-        displayMessage(data.error, false);
-        return;
-    }
-
-    // don't initialize the chart if entry data is empty
-    if (data["entries"] == false) {
-        document.querySelector('#exerciseChartContainer').textContent = "No journal entries exist for this exercise.";
-        return;
-    }
+async function ex_displayExerciseChart(data) {
+    const heading = document.createElement('div');
+    heading.classList.add("display-6");
+    heading.textContent = `Performace over last ${data["entries"].length} entries:`;
+    exContent.prepend(heading);
 
     const entries = data["entries"];
     // initialize chart

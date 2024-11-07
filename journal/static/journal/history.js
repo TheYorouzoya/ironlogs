@@ -4,7 +4,12 @@
  * 
  * @param {Object} state the history state object to be processed 
  */
-function processHistory(state) {
+async function processHistory(state) {
+    if(!(await isLoggedIn())) {
+        window.location.href = '/login/';
+        return;
+    }
+    
     switch(state.view) {
         case JOURNAL_VIEW:
             processJournalViewState(state);
@@ -22,6 +27,12 @@ function processHistory(state) {
             console.log("invalid view index");
             return;
     }
+}
+
+async function isLoggedIn() {
+    return fetch('/isLogged')
+    .then(response => response.json())
+    .then(data => data.isAuthenticated);
 }
 
 
@@ -140,7 +151,7 @@ async function processExercisesViewState(state) {
     if (state.exercise) {
         // if an exercise was visited
         emptyExerciseView();
-        ev_loadExercise(state.exercise);
+        ex_loadExercise(state.exercise);
     }
     if (state.exerciseQuery) {
         // if the exercise table was filtered with a query

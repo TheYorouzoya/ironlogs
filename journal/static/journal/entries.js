@@ -78,8 +78,6 @@ function emptyEntriesView() {
 }
 
 
-// Populate the entries container (a bootsrap accordion) with the entries contained 
-// in the data object
 /**
  * Empties the entries container and populates it with the provided entry data.
  * 
@@ -157,12 +155,17 @@ function en_populateEntries(data) {
 
             // edit button wrapper
             const buttonWrapper = document.createElement('div');
-            buttonWrapper.classList.add("col-2");
-            buttonWrapper.innerHTML = EDIT_BUTTON_SVG;
+            buttonWrapper.classList.add("col-2", "d-flex", "justify-content-end");
+            
+            const editEntryButton = document.createElement('div');
+            editEntryButton.classList.add("align-self-end");
+            editEntryButton.innerHTML = EDIT_BUTTON_SVG;
             // add edit button listener
-            buttonWrapper.querySelector('svg').addEventListener('click', function() {
+            editEntryButton.querySelector('svg').addEventListener('click', function() {
                 en_addEntryEditForm(this);
             });
+
+            buttonWrapper.append(editEntryButton);
 
             // append all contents
             wrapper.append(entryContent, buttonWrapper);
@@ -190,7 +193,7 @@ function en_populateEntries(data) {
  * Displays an edit entry form in the entry accordion.
  * 
  * After fetching the necessary details, the target entry is hidden until the user
- * either clicked the submit or cancel button. A successful submission modifies
+ * either clicks the submit or cancel button. A successful submission modifies
  * the target's entry with the updated data. A successful deletion removes the parent
  * div from the DOM.
  * 
@@ -198,7 +201,7 @@ function en_populateEntries(data) {
  */
 function en_addEntryEditForm (target) {
     // fetch current entry data
-    const container = target.parentNode.parentNode;
+    const container = target.closest(".list-group-item").firstChild;
     const id = container.dataset.id;
     const name = container.dataset.name;
 
@@ -221,19 +224,27 @@ function en_addEntryEditForm (target) {
 
     // initalize buttons
     const buttonWrapper = document.createElement('div');
-    buttonWrapper.classList.add("d-flex", "justify-content-between");
+    buttonWrapper.classList.add("row", "edit-entry-button-wrapper");
 
     const submitButton = returnButton("info", "Submit", function () {
         en_submitEditEntryForm(form);
     });
     submitButton.classList.add("btn-sm");
 
+    const subWrapper = document.createElement('div');
+    subWrapper.classList.add("col");
+    subWrapper.append(submitButton);
+
     const removeButton = returnButton("danger", "Remove Entry", function () {
         en_removeEntry(form);
     })
     removeButton.classList.add("btn-sm");
 
-    buttonWrapper.append(submitButton, removeButton);
+    const remWrapper = document.createElement('div');
+    remWrapper.classList.add("col", "justify-content-end", "d-flex");
+    remWrapper.append(removeButton);
+
+    buttonWrapper.append(subWrapper, remWrapper);
     form.append(buttonWrapper);
 
     // hide current entry div

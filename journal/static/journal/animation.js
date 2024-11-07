@@ -1,4 +1,4 @@
-const MEDIA_BREAKPOINT = 768;
+const MEDIA_BREAKPOINT = 992;
 let currentViewWidth, belowBreakpoint;
 
 function an_init() {

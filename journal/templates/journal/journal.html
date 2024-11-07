@@ -17,6 +17,7 @@
             <a class="nav-link" id="entries">Entries</a>
             <a class="nav-link" id="program">Program</a>
             <a class="nav-link" id="exercises">Exercises</a>
+            <a class="nav-link" id="logout" href="/logout">Logout</a>
             </div>
         </div>
         </div>
@@ -98,27 +99,33 @@
             </div>
         </div>
         <div id="program-view">
-            <div class="row">
-                <div id="program-view-header" class="display-6 col">Your Programs</div>
-                <div id="program-view-btn-wrapper" class="col d-flex justify-content-end">
-                    <div id="program-view-buttons"></div>
+            <div id="program-view-header-wrapper">
+                <div class="row">
+                    <div id="program-view-header" class="display-6 col">Your Programs</div>
+                    <div id="program-view-btn-wrapper" class="col-5 d-flex justify-content-end">
+                        <div id="program-view-buttons"></div>
+                    </div>
+                    <div id="program-view-description"></div>
+                    <div id="program-view-form-container">
+            
+                    </div>
                 </div>
             </div>
-            <hr>
-            <div id="program-view-description"></div>
-            <div id="program-view-container">
-                <div id="program-view-form-container">
             
-                </div>
+            <div id="program-view-container">
                 <div id="program-view-content">
                     
                 </div>
             </div>
         </div>
         <div id="exercises-view">
-            <div id="evHeader"></div>
-            <div id="evForms"></div>
-            <div id="evContent"></div>
+            <div id="exHeader"></div>
+            <div id="exContentWrapper">
+                <div id="exFormsWrapper">
+                    <div id="exForms" class="row d-flex"></div>
+                </div>
+                <div id="exContent"></div>
+            </div>
         </div>
     </div>
 {% endblock %}

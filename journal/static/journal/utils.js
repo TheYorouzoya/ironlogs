@@ -1,8 +1,20 @@
-const JOURNAL_VIEW      = 0;
-const PROGRAM_VIEW      = 1;
-const EXERCISES_VIEW    = 2;
-const ENTRIES_VIEW      = 3;
+// View Constants
+const JOURNAL_VIEW      =  0;
+const PROGRAM_VIEW      =  1;
+const EXERCISES_VIEW    =  2;
+const ENTRIES_VIEW      =  3;
 
+// Exercise view table header constants
+const TB_EXERCISE       =  0;
+const TB_BODYPART       =  1;
+const TB_WORKOUT        =  2;
+const TB_PROGRAM        =  3;
+
+// Exercise view table ordering
+const ASCEND            =  1;
+const DESCEND           = -1;
+
+// SVG constants
 const CLOSE_BUTTON_SVG = `
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" style="min-width: 24px"  fill="currentColor" class="bi bi-x-circle" viewBox="0 0 16 16">
         <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
@@ -54,7 +66,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     initializeViewListeners();
     jv_init();
     en_init();
-    ev_init();
+    ex_init();
     pv_init();
     an_init();
 
@@ -296,8 +308,11 @@ function clearMessages() {
 function util_returnAutocompleteExerciseSearchForm(formId, listenerFunction) {
     // initalize form
     const searchForm = document.createElement('form');
-    searchForm.classList.add("row", "form-control", "search-container");
-    searchForm.textContent = "Lookup Exercise:";
+    searchForm.classList.add("form-control", "search-container");
+
+    const searchHeading = document.createElement('div');
+    searchHeading.classList.add("search-bar-heading");
+    searchHeading.textContent = "Lookup Exercise:";
 
     // initialize input field
     const searchInput = document.createElement('input');
@@ -317,7 +332,20 @@ function util_returnAutocompleteExerciseSearchForm(formId, listenerFunction) {
         util_fetchExerciseSearchResults(this.value, formId, listenerFunction);
     });
 
-    searchForm.append(searchInput, searchResults);
+    searchInput.addEventListener('focusout', function () {
+        if (!searchResults.matches(":hover")) {
+            searchResults.classList.remove("visible");
+        }
+    });
+
+    searchInput.addEventListener('focusin', function () {
+        if (searchResults.firstChild.childNodes.length > 0) {
+            searchResults.classList.add("visible");
+        }
+        console.log(searchResults.childNodes);
+    });
+
+    searchForm.append(searchHeading, searchInput, searchResults);
     return searchForm;
 }
 
@@ -510,6 +538,19 @@ function util_returnAutocompleteWorkoutExerciseSearchForm(formId, formListener) 
         util_fetchWorkoutExerciseSearchResults(this.value, formId, formListener);
     });
 
+    searchInput.addEventListener('focusout', function () {
+        if (!searchResults.matches(":hover")) {
+            searchResults.classList.remove("visible");
+        }
+    });
+
+    searchInput.addEventListener('focusin', function () {
+        if (searchResults.firstChild.childNodes.length > 0) {
+            searchResults.classList.add("visible");
+        }
+        console.log(searchResults.childNodes);
+    });
+
     searchForm.append(searchInput, searchResults);
     return searchForm;
 }
@@ -618,17 +659,16 @@ function util_returnBulkExerciseEntryForms(exercises, closeButtonListener) {
 function util_returnExerciseEntryForm(exercise, closeButtonListener) {
     // initialize containers
     const mainCont = document.createElement('div');
-    mainCont.classList.add("form-control", "d-flex");
+    mainCont.classList.add("form-control", "position-relative");
 
     const formContainer = document.createElement('div');
     formContainer.classList.add("col");
 
     const buttonWrapper = document.createElement('div');
-    buttonWrapper.classList.add("col-1");
+    buttonWrapper.classList.add("position-absolute", "top-0", "end-0", "entry-form-close-button");
 
     // initialize close button
     const closeButton = document.createElement('div');
-    closeButton.classList.add("d-flex", "justify-content-end");
     closeButton.innerHTML = CLOSE_BUTTON_SVG;
 
     closeButton.addEventListener('click', function () {
@@ -639,7 +679,6 @@ function util_returnExerciseEntryForm(exercise, closeButtonListener) {
 
     // initialize fields
     const exNameLabel = document.createElement('div');
-    exNameLabel
     exNameLabel.textContent = `${exercise.name}:`;
 
     const exerciseForm = document.createElement('form');
@@ -653,7 +692,7 @@ function util_returnExerciseEntryForm(exercise, closeButtonListener) {
 
     formContainer.append(exNameLabel, exerciseForm);
 
-    mainCont.append(formContainer, buttonWrapper);
+    mainCont.append(buttonWrapper, formContainer);
     mainCont.classList.add("entry-form");
 
     return mainCont;
