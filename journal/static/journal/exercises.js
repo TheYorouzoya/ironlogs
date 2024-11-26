@@ -514,9 +514,6 @@ async function ex_loadExercise(exerciseId) {
     // initialize exercise graph
     const graphContainer = document.createElement('div');
     graphContainer.setAttribute("id", "exerciseChartContainer");
-    const chart = document.createElement('canvas');
-    chart.setAttribute("id", "exerciseChart");
-    graphContainer.append(chart);
     body.append(graphContainer);
 
     exHeader.append(header);
@@ -801,20 +798,41 @@ async function ex_displayExerciseChart(data) {
     heading.textContent = `Performace over last ${data["entries"].length} entries:`;
     exContent.prepend(heading);
 
+    const weight_chart = document.createElement('canvas');
+    weight_chart.setAttribute("id", "exerciseWeightChart");
+
+    const wc_wrapper = document.createElement('div');
+    wc_wrapper.classList.add("col");
+    wc_wrapper.append(weight_chart);
+
+    const volume_chart = document.createElement('canvas');
+    volume_chart.setAttribute("id", "exerciseVolumeChart");
+
+    const vc_wrapper = document.createElement('div');
+    vc_wrapper.classList.add("col");
+    vc_wrapper.append(volume_chart);
+
+    const container = document.getElementById('exerciseChartContainer');
+    container.classList.add("row");
+    container.append(wc_wrapper, vc_wrapper);
+
     const entries = data["entries"];
+
+    const chart_labels = entries.map(entry => entry.date);
+
     // initialize chart
     new Chart(
-        document.getElementById('exerciseChart'),
+        weight_chart,
         {
             type: 'line',
             data: {
-            labels: entries.map(entry => entry.date),
+            labels: chart_labels,
             datasets: [
                 {
                 label: 'Exercise Intensity (in kgs)',
                 data: entries.map(entry => entry.intensity),
                 fill: false,
-                borderColor: 'rgb(75, 192, 192)',
+                borderColor: '#FCA311',
                 tension: 0.1
                 }
             ]
@@ -822,13 +840,43 @@ async function ex_displayExerciseChart(data) {
             options: {
                 plugins: {
                     legend: {
-                        display: false
+                        position: 'bottom',
+                        labels: {
+                            color: '#FFFFFF'
+                        }
                     }
                 },
                 scales: {
                 y: {
                     beginAtZero: true
                 }
+                }
+            }
+        }
+    );
+
+    new Chart(
+        volume_chart,
+        {
+            type: 'bar',
+            data: {
+                labels: chart_labels,
+                datasets: [{
+                    label: 'Volume (sets x reps)',
+                    data: entries.map(entry => entry.sets * entry.reps),
+                    backgroundColor: 'rgba(252, 163, 17, 0.2)',
+                    borderColor: '#FCA311',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '#FFFFFF'
+                        }
+                    }
                 }
             }
         }

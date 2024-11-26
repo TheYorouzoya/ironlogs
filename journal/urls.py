@@ -24,6 +24,7 @@ urlpatterns = [
     
     # Bodyparts
     path("bodypart/all", views.allBodyparts, name="allBodyparts"),
+    path("bodypart/count/range/", views.bodypartInRange, name="bodypartInRange"),
 
     # For a singular entry
     path("entry/", views.entry, name="entry"),

@@ -263,6 +263,22 @@ nav {
         }
     }
 
+    #enChartContainer {
+        background-color: $bootstrap-dark;
+        border-radius: 0.5em;
+        padding: 0.5em;
+        margin-top: $element-top-margin;
+
+        .chart-heading {
+            margin-top: $element-top-margin;
+            font-size: 1.5rem;
+        }
+
+        canvas {
+            margin-top: $element-top-margin;
+        }
+    }
+
     #entries-entry-parent-container {
 
         #entries-entry-container {

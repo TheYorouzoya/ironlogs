@@ -64,6 +64,9 @@ async function loadEntriesView() {
         en_populateEntriesHeader("No entries this week.");
     } else {
         en_populateEntriesHeader("This week's entries:");
+        const apiResponse2 = await fetch("bodypart/count/range/");
+        const data2 = await apiResponse2.json();
+        en_displayEntryChart(data2["data"], "Body Part distribution for this week:");
         en_populateEntries(data);
     }
 }
@@ -386,7 +389,7 @@ async function en_submitEntriesRangeForm() {
     const endDate = document.querySelector('#entriesEndDate').value;
 
     // Fetch the entries
-    const apiResponse = await fetch(`entries/range/?startDate=${startDate}&endDate=${endDate}`)
+    const apiResponse = await fetch(`entries/range/?startDate=${startDate}&endDate=${endDate}`);
     const data = await apiResponse.json();
 
     // bail if an error occurs
@@ -397,6 +400,11 @@ async function en_submitEntriesRangeForm() {
     
     // Populate container with entries
     emptyEntriesView();
+
+    const apiResponse2 = await fetch(`bodypart/count/range/?startDate=${startDate}&endDate=${endDate}`);
+    const data2 = await apiResponse2.json();
+    en_displayEntryChart(data2["data"], `Body part distribution from ${startDate} to ${endDate}`);
+    
     en_populateEntriesHeader(`Entries from ${startDate} to ${endDate}`);
     en_populateEntries(data);
 }
@@ -618,6 +626,7 @@ async function en_loadEntryOnDate(date) {
  * @returns 
  */
 function en_addEntryOnDate(date) {
+    en_emptyChartContainer();
     // initialize today and the given date
     const td = new Date();
     const givenDate = new Date(date);
@@ -656,7 +665,7 @@ function en_addEntryOnDate(date) {
         async function() {  // entry submission function
             let submission = await util_submitEntriesForm('enExerciseForms');
             if(submission) {
-                let viewload = await loadEntriesView();
+                let calendarload = await en_loadCalendar(givenDate);
                 let entryload = await en_loadEntryOnDate(date);
                 en_addEntryOnDate(date);
             }
@@ -723,4 +732,66 @@ function en_addEntryCloseButtonListener (target) {
     }
     element.classList.add("fade-out");
     setTimeout(() => { element.remove(); }, 300);
+}
+
+
+/**
+ * Empties the chart container and sets its display property to `none`.
+ */
+function en_emptyChartContainer() {
+    const container = document.getElementById('enChartContainer');
+    container.innerHTML = "";
+    container.style.display = "none";
+}
+
+
+/**
+ * Displays a Chart.js doughnut chart of exercises done per bodypart. The range and
+ * data are already decided by the caller, this function simply displays the data as
+ * a chart.
+ * 
+ * The supplied `bp_counts` data should follow this format: {"name": bodypart_name,
+ * "count": bodypart_exercise_count}
+ * 
+ * @param {BodyPart[]} bp_counts    bodypart data to be displayed 
+ * @param {String}     headingText  chart's heading string
+ */
+function en_displayEntryChart(bp_counts, headingText) {
+    const container = document.getElementById('enChartContainer');
+    container.innerHTML = "";
+
+    const heading = document.createElement('div');
+    heading.classList.add("chart-heading", "display-6");
+    heading.textContent = headingText;
+    container.append(heading);
+    
+    const chart = document.createElement('canvas');
+    chart.style.display = "none";
+    chart.setAttribute("id", "enChart");
+    new Chart(
+        chart,
+        {
+            type:'doughnut',
+            data: {
+                labels: bp_counts.map(part => part.name),
+                datasets: [{
+                    label: 'Exercises',
+                    data: bp_counts.map(part => part.count)
+                }]
+            },
+            options: {
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '#FFFFFF'
+                        }
+                    }
+                }
+            }
+        }
+    )
+    container.append(chart);
+    container.style.display = "block";
+    chart.style.display = "block";
 }
