@@ -66,4 +66,5 @@ Clicking on a particular exercise presents the user with the analytics for that 
 
 ![The Exercise View containing the details of the exercise and the performance charts](./docimages/exercise-2.png)
 
-## Distinctiveness and Complexity
+## Distinctiveness and Complexity (for CS50w)
+
