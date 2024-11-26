@@ -6,6 +6,7 @@ from django.core.paginator import Paginator
 from django.db import IntegrityError
 from django.shortcuts import HttpResponseRedirect, render
 from django.urls import reverse
+from django.db.models import Q, Count
 
 import json
 import datetime
@@ -950,6 +951,47 @@ def addExercises(request):
         "message": "Successfully added exercise(s)."
     }, status=201)
 
+
+#==============================================================================#
+#                              BODYPART ROUTES
+#==============================================================================#
+
+@login_required
+def bodypartInRange(request):
+    """
+    Counts the number of entries for each bodypart in the given range and returns
+    the tallied up data.
+
+    If no range is provided, return the current week's (starting at Monday) count.
+    """
+
+    try:
+        end_date = returnDate(request.GET.get("endDate"), datetime.date.today())
+        start_date = returnDate(
+            request.GET.get("startDate"), 
+            end_date - datetime.timedelta(days = end_date.weekday())
+            )
+    except ValueError:
+        return JsonResponse({
+            "error": "Invalid arguments to start or end date"
+        }, status=400)
+    
+    bodypart_counts = BodyPart.objects.annotate(
+        entry_count=Count(
+            'exercise__entry',
+            filter=Q(exercise__entry__timestamp__range=[start_date, end_date])
+        )
+    ).order_by('-entry_count')
+    
+    payload = [{
+        "id": part.id,
+        "name": part.name,
+        "count": part.entry_count
+        } for part in bodypart_counts]
+    
+    return JsonResponse(( {
+        "data": payload
+    }), status=200)
 
 #==============================================================================#
 #                              SEARCH ROUTES

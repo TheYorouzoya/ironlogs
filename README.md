@@ -6,7 +6,7 @@ Then run,
 prompt> python manage.py runserver
 ```
 
-If you want to run the app in a virtual environment, then navigate into the project directory and execute `python3 -m venv .venv`. This will create a virtual environment named `.venv`. To activate the virtual environment, enter: `source .venv/bin/activate`. If it worked, you should see `(.venv)` before the command prompt.
+If you want to run the app in a virtual environment, then navigate into the project directory and execute `python -m venv .venv`. This will create a virtual environment named `.venv`. To activate the virtual environment, enter: `source .venv/bin/activate`. If it worked, you should see `(.venv)` before the command prompt.
 
 Install the requirements as mentioned above. Verify that Django is installed by entering: `python3 -m django --version`. Then, run the command `python manage.py runserver`
 
@@ -38,6 +38,8 @@ IronLogs is a workout journaling app to log workouts, track performance, and org
 
 The app allows the user to create a number of exercise programs. Each program can contain a number of workouts, each one set to a specific day of the week. Each of these workouts, then, can have a number of exercises within it.
 
+![Image showing the list of Programs](./docimages/program-1.png)
+
 ![Image showing the program organization as described above](./docimages/program.png)
 
 ### Log Workouts
@@ -52,8 +54,17 @@ Additionally, a search bar is provided where the user can lookup a particular wo
 
 All submitted entries can be viewed from the Entries page. By default, the Entry View shows the current week's exercise entries. It also contains a calendar which marks the dates for which an entry exists. The user can click on a particular date and get the exercise entries associated with it. If no entry exists for the date, they are instead prompted to add one.
 
-Any particular entry can edited by clicking on the edit button (which also presents an option to delete the entry itself). Furthermore, the user can search for all entries within a particular time period. For these selected time periods, the view also presents the user with a pie chart denoting bodypart workout distribution.
+Any particular entry can edited by clicking on the edit button (which also presents an option to remove the entry itself). Furthermore, the user can search for all entries within a particular time period. For these selected time periods, the view also presents the user with a doughnut chart representing bodypart workout distribution. The app uses the [Chart.js](https://www.chartjs.org/) library to display its charts.
 
+![The Entry View showing all entries from the month of November along with the calendar and the doughnut chart](./docimages/entry-view.png)
 
+Furthermore, the user can view their progress and performance on a per-exercise basis in the Exercise View. It contains a table of all the exercises the user has ever made across all programs. This table can be filtered for a particular program, workout, or a body part. A search bar is also provided where the user can look for a specific exercise directly.
 
-## Distinctiveness and Complexity
+![The Exercise View containing the table of all exercises along with a search bar](./docimages/exercise-1.png)
+
+Clicking on a particular exercise presents the user with the analytics for that exercise across the last 50 journal entries. The data is presented across two charts -- one containing the user's performance on a time vs intensity line chart, the other containing the time vs volume bar chart.
+
+![The Exercise View containing the details of the exercise and the performance charts](./docimages/exercise-2.png)
+
+## Distinctiveness and Complexity (for CS50w)
+
