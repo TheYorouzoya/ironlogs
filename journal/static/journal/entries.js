@@ -35,11 +35,21 @@ function en_init() {
     });
 }
 
+
+function hideEntriesView() {
+    document.getElementById('entries-view-content').style.display = 'none';
+}
+
+
+function showEntriesView() {
+    document.getElementById('entries-view-content').style.display = 'block';
+}
+
 /**
  * Empties the entry view and loads the default entry view state.
  * 
- * Default entry view consists of a calendar, a range search form, and an entries
- * container.
+ * Default entry view consists of a calendar, a range search form, a chart
+ * container, and an entries container.
  */
 async function loadEntriesView() {
     // toggle view and empty
@@ -47,8 +57,10 @@ async function loadEntriesView() {
     emptyEntriesView();
 
     // load calendar widget
-    en_loadCalendar(new Date());
+    await en_loadCalendar(new Date());
+}
 
+async function en_loadDefaults() {
     // fetch this week's entries
     const apiResponse = await fetch(`entries/range/`)
     const data = await apiResponse.json();
@@ -78,6 +90,7 @@ function emptyEntriesView() {
     document.querySelector('#entries-header').innerHTML = "";
     document.querySelector('#entries-search-bar').innerHTML = "";
     document.querySelector('#entries-container').innerHTML = "";
+    en_emptyChartContainer();
 }
 
 
@@ -229,7 +242,7 @@ function en_addEntryEditForm (target) {
     const buttonWrapper = document.createElement('div');
     buttonWrapper.classList.add("row", "edit-entry-button-wrapper");
 
-    const submitButton = returnButton("info", "Submit", function () {
+    const submitButton = util_returnButton("info", "Submit", function () {
         en_submitEditEntryForm(form);
     });
     submitButton.classList.add("btn-sm");
@@ -238,7 +251,7 @@ function en_addEntryEditForm (target) {
     subWrapper.classList.add("col");
     subWrapper.append(submitButton);
 
-    const removeButton = returnButton("danger", "Remove Entry", function () {
+    const removeButton = util_returnButton("danger", "Remove Entry", function () {
         en_removeEntry(form);
     })
     removeButton.classList.add("btn-sm");
@@ -452,7 +465,7 @@ async function en_loadCalendar(anchorDate) {
 
     // Update the current (month, year) header in the calendar
     const currentDate = document.querySelector('#calendar-current-date');
-    currentDate.innerHTML = `${months[month]} ${year}`;
+    currentDate.textContent = `${months[month]} ${year}`;
     currentDate.dataset.anchorDate = `${year}-${month + 1}-1`;
 
     // Calculate previous month and year and attach listener for navigation
@@ -591,6 +604,7 @@ function en_calendarMarkedDateClicked(clickDate) {
         '',
         `#entries/date=${clickDate}`
     );
+    en_populateEntriesHeader(`Entries on ${new Date(clickDate).toDateString()}:`);
     en_loadEntryOnDate(clickDate);
     en_addEntryOnDate(clickDate);
 }
@@ -614,7 +628,6 @@ async function en_loadEntryOnDate(date) {
     }
 
     // populate entries
-    en_populateEntriesHeader(`Entries on ${new Date(date).toDateString()}:`);
     en_populateEntries(data);
 }
 
@@ -659,13 +672,14 @@ function en_addEntryOnDate(date) {
     const buttonWrapper = document.createElement('div');
     buttonWrapper.classList.add("d-flex", "justify-content-end");
     
-    const submitButton = returnButton(
+    const submitButton = util_returnButton(
         "info", 
         "Add Entry",
         async function() {  // entry submission function
             let submission = await util_submitEntriesForm('enExerciseForms');
             if(submission) {
                 let calendarload = await en_loadCalendar(givenDate);
+                en_populateEntriesHeader(`Entries on ${new Date(date).toDateString()}:`);
                 let entryload = await en_loadEntryOnDate(date);
                 en_addEntryOnDate(date);
             }
@@ -727,11 +741,12 @@ async function en_addExerciseFormListener(target, workoutFlag) {
  */
 function en_addEntryCloseButtonListener (target) {
     const element = target.parentNode.parentNode;
-    if (element.parentNode.childElementCount <= 2) {
+    const parent = document.getElementById('enExerciseForms');
+    if (parent.childElementCount <= 1) {
         document.querySelector('#enSubmitEntryButton').style.display = "none";
     }
     element.classList.add("fade-out");
-    setTimeout(() => { element.remove(); }, 300);
+    element.remove();
 }
 
 

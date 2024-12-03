@@ -14,7 +14,7 @@ let pvContainer, pvHeader, pvButtons, pvDescription, pvForms, pvContent, days;
  * the 7 days of the week as strings.
  */
 function pv_init() {
-    pvContainer = document.querySelector('#program-view');
+    pvContainer = document.querySelector('#pv-content-container');
     pvHeader = document.querySelector('#program-view-header');
     pvButtons = document.querySelector('#program-view-buttons');
     pvDescription = document.querySelector('#program-view-description');
@@ -91,7 +91,7 @@ async function pv_loadAllPrograms() {
     emptyProgramView();
 
     // add an "Add Program" button to allow the user to add programs
-    pvButtons.append(returnButton("info", "Add New Program", function () {
+    pvButtons.append(util_returnButton("info", "Add New Program", function () {
         history.pushState(
             {
                 "view": PROGRAM_VIEW,
@@ -194,7 +194,7 @@ async function pv_loadProgram(pId) {
     pvDescription.append(pDescription);
 
     // Allow editing program name and description using an edit button
-    const editButton = returnButton("info", "Edit", function() {
+    const editButton = util_returnButton("info", "Edit", function() {
         history.pushState(
             {
                 "view": PROGRAM_VIEW,
@@ -343,7 +343,7 @@ function pv_displayAddProgramForm() {
     const programForm = document.createElement('form');     // initialize form
     
     // Initialize Input Fields
-    const nameInput = returnTextInputField(
+    const nameInput = util_returnTextInputField(
         "Program Name", 
         "program-name", 
         "Give your program a name (60 characters long)", 
@@ -351,7 +351,7 @@ function pv_displayAddProgramForm() {
         ""
     );
 
-    const descriptionInput = returnTextInputField(
+    const descriptionInput = util_returnTextInputField(
         "Program Description", 
         "program-description", 
         "Add a brief description of your program (2000 characters long)", 
@@ -360,7 +360,7 @@ function pv_displayAddProgramForm() {
     );
 
     // Initialize buttons
-    const submitButton = returnButton("info", "Submit", async function () {
+    const submitButton = util_returnButton("info", "Submit", async function () {
         // submit the form
         if (await pv_submitAddProgramForm()) {   // on successful submission
             history.pushState(
@@ -374,7 +374,7 @@ function pv_displayAddProgramForm() {
         }
     });
 
-    const cancelButton = returnButton("danger", "Cancel", function () {
+    const cancelButton = util_returnButton("danger", "Cancel", function () {
         // return to program view if user clicks Cancel
         history.pushState(
             {
@@ -457,7 +457,7 @@ function pv_loadProgramEditForm(program) {
     const programForm = document.createElement('form');
     
     // Initialize input fields
-    const nameInput = returnTextInputField(
+    const nameInput = util_returnTextInputField(
         "Program Name", 
         "program-name", 
         "Edit the program name (60 characters long)", 
@@ -467,7 +467,7 @@ function pv_loadProgramEditForm(program) {
 
     nameInput.dataset.id = program.id;                  // set program ID for submission
 
-    const descriptionInput = returnTextInputField(
+    const descriptionInput = util_returnTextInputField(
         "Program Description", 
         "program-description", 
         "Edit program description (2000 characters long)", 
@@ -476,7 +476,7 @@ function pv_loadProgramEditForm(program) {
     );
 
     // Submit button
-    const submitButton = returnButton("info", "Submit", async function () {
+    const submitButton = util_returnButton("info", "Submit", async function () {
         // reload the program on successful submission
         if (await pv_submitEditProgramForm()) {
             history.pushState(
@@ -492,7 +492,7 @@ function pv_loadProgramEditForm(program) {
     });
     
     // Delete button
-    const deleteButton = returnButton("danger", "Delete Program", async function() {
+    const deleteButton = util_returnButton("danger", "Delete Program", async function() {
         // return to default program view state on successful deletion
         if (await pv_deleteProgram(program.id)) {
             history.replaceState(
@@ -508,7 +508,7 @@ function pv_loadProgramEditForm(program) {
     });
     
     // Cancel button
-    const cancelButton = returnButton("info", "Cancel", function () {
+    const cancelButton = util_returnButton("info", "Cancel", function () {
         history.pushState(
             {
                 "view": PROGRAM_VIEW,
@@ -909,7 +909,7 @@ async function pv_displayWorkoutExercises(row) {
         </div>`;
     
     // edit button to allow the user to edit a workout's name
-    const editButton = returnButton(
+    const editButton = util_returnButton(
         "info",
         "Edit",
         function () { 
@@ -1042,7 +1042,7 @@ function pv_displayEditWorkoutForm(row) {
     form.setAttribute("id", "editWorkoutForm");
     form.dataset.workoutId = workoutId;
 
-    const nameField = returnTextInputField(
+    const nameField = util_returnTextInputField(
         "Workout Name",
         "workout-name",
         "New workout name (60 characters long):",
@@ -1054,7 +1054,7 @@ function pv_displayEditWorkoutForm(row) {
     const pName = document.querySelector('#pvWorkoutContainer').dataset.programName;
 
     // Initialize buttons
-    const deleteButton = returnButton("danger", "Delete Workout", async function () {
+    const deleteButton = util_returnButton("danger", "Delete Workout", async function () {
         // successful deletion reloads the workouts
         if (await pv_deleteWorkout(workoutId)) {
             history.replaceState(
@@ -1070,7 +1070,7 @@ function pv_displayEditWorkoutForm(row) {
         }        
     })
 
-    const submitButton = returnButton("info", "Submit", async function () {
+    const submitButton = util_returnButton("info", "Submit", async function () {
         // successful submission reloads the workouts table and the workout
         if (await pv_submitEditWorkoutForm(row)) {
             history.pushState(
@@ -1087,7 +1087,7 @@ function pv_displayEditWorkoutForm(row) {
         }
     })
 
-    const cancelButton = returnButton("info", "Cancel", function () {
+    const cancelButton = util_returnButton("info", "Cancel", function () {
         // clicking Cancel shows the workout's exercises again
         history.pushState(
             {
@@ -1261,7 +1261,7 @@ function pv_displayWorkoutForms(clickedRow, workouts) {
     const pId = document.querySelector('#pvWorkoutContainer').dataset.programId;
     const pName = document.querySelector('#pvWorkoutContainer').dataset.programName;
     
-    const submitWorkoutButton = returnButton("info", "Add Workout", async function () {
+    const submitWorkoutButton = util_returnButton("info", "Add Workout", async function () {
         // on successful submission, reload updated program data
         let workoutName = selectField.options[selectField.selectedIndex].textContent.trim();
         if (await pv_submitWorkoutSelectFieldForm()) {
@@ -1288,7 +1288,7 @@ function pv_displayWorkoutForms(clickedRow, workouts) {
     const workoutForm = document.createElement('form');
     workoutForm.classList.add("form-control");
 
-    workoutForm.append(returnTextInputField(
+    workoutForm.append(util_returnTextInputField(
         "Workout Name:",
         "workout-name",
         "Give your workout a name (60 characters long)",
@@ -1296,7 +1296,7 @@ function pv_displayWorkoutForms(clickedRow, workouts) {
         ""
     ))
 
-    workoutForm.append(returnButton(
+    workoutForm.append(util_returnButton(
         "info", 
         "Add New Workout",
         async function() {
@@ -1470,7 +1470,7 @@ function pv_returnAddExerciseForm(row) {
         bodypartList = data["bodyparts"];
     });
 
-    const submitButton = returnButton("info", "Submit", async function () {
+    const submitButton = util_returnButton("info", "Submit", async function () {
         if (await pv_submitAddExerciseForm()) { // on successful submission
             pv_displayWorkoutExercises(row);    // reload exercise data for the workout
         }
@@ -1478,7 +1478,7 @@ function pv_returnAddExerciseForm(row) {
     // hide submit button until the user clicks "Add An Exercise"
     submitButton.style.display = "none";
 
-    const cancelButton = returnButton("danger", "Cancel", function () {
+    const cancelButton = util_returnButton("danger", "Cancel", function () {
         // clicking Cancel hides all the forms and buttons
         exerciseForms.innerHTML = "";
         submitButton.style.display = "none";
@@ -1493,7 +1493,7 @@ function pv_returnAddExerciseForm(row) {
     footerButtonWrapper.classList.add("exercise-form-footer", "d-flex", "justify-content-end");
 
     // The "Add An Exercise" button
-    const addButton = returnButton("info", "Add An Exercise", function () {
+    const addButton = util_returnButton("info", "Add An Exercise", function () {
         // add the exercise form
         exerciseForms.prepend(pv_returnExerciseForm(bodypartList));
         
@@ -1530,7 +1530,7 @@ function pv_returnExerciseForm(bodypartList) {
     const formContainer = document.createElement('form');
     formContainer.classList.add("exercise-form", "form-control");
 
-    const exName = returnTextInputField(
+    const exName = util_returnTextInputField(
         "Exercise Name",
         "exercise-name",
         "Give your exercise a suitable name (upto 200 character long)",
@@ -1540,7 +1540,7 @@ function pv_returnExerciseForm(bodypartList) {
     
     const bodypartChecklist = pv_returnBodypartChecklist(bodypartList, "pvBodypartChecklist");
 
-    const exDescription = returnTextInputField(
+    const exDescription = util_returnTextInputField(
         "Exercise Description",
         "exercise-description",
         "Give a suitable description for the exercise (upto 2000 characters long)",

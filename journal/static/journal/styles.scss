@@ -13,6 +13,10 @@ body {
     background-color: $palette-color-background;
     color: white;
 
+    a {
+        color: $palette-color-1;
+    }
+
     .btn-outline-info {
         border-color: $palette-color-1;
         color: $palette-color-1;
@@ -46,10 +50,6 @@ body {
             --bs-table-color: #{$palette-color-1};
         }
     }
-
-    // form.search-container:not(:focus-within) .search-results {
-    //     display:none;
-    // }
 }
 
 #content {
@@ -61,6 +61,21 @@ nav {
     background-color: #FCA311;
     a {
         cursor: pointer;
+    }
+
+    .nav-link {
+        border-radius: 1rem;
+    }
+
+    .navbar-brand {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+        border-radius: 1rem;
+    }
+
+    .navbar-brand:hover, .nav-link:hover {
+        color: white;
+        background-color: $bootstrap-dark;
     }
     
 }
@@ -169,6 +184,48 @@ nav {
     }
 }
 
+/*
+=================================================
+                LOGIN FORM
+=================================================
+*/
+#login-view {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    -webkit-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+    max-width: 350px;
+    padding: 2rem;
+    border-radius: 1rem;
+    background-color: $bootstrap-dark;
+
+    .login-form, .help-text {
+        margin-top: $element-top-margin;
+    }
+}
+
+/*
+=================================================
+                REGISTER FORM
+=================================================
+*/
+#register-view {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    -webkit-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+    max-width: 500px;
+    padding: 2rem;
+    border-radius: 1rem;
+    background-color: $bootstrap-dark;
+
+    .register-form, .help-text {
+        margin-top: $element-top-margin;
+    }
+}
+
 
 /*
 =================================================
@@ -253,6 +310,10 @@ nav {
             }
             .date-marked {
                 background-color: $palette-color-1;
+                color: $dark-black;
+            }
+            .date-current {
+                background-color: white;
                 color: $dark-black;
             }
             .col:hover:not(.date-faded):hover {

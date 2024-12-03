@@ -38,11 +38,16 @@ def login_view(request):
     invalid, redirect to the login page with the error message.
     """
     if request.method == "POST":
-
-        # Attempt to sign the user in
-        username = request.POST["username"]
-        password = request.POST["password"]
-        user = authenticate(request, username=username, password=password)
+        if 'demo' in request.POST:
+            DEMO_USERNAME = 'house'
+            DEMO_PASS = 'house123'
+            user = authenticate(request, username=DEMO_USERNAME, password=DEMO_PASS)
+        
+        else:
+            # Attempt to sign the user in
+            username = request.POST["username"]
+            password = request.POST["password"]
+            user = authenticate(request, username=username, password=password)
 
         # Check if authentication is successful
         if user is not None:
@@ -55,6 +60,14 @@ def login_view(request):
     
     else:
         return render(request, "journal/login.html")
+    
+
+def check_login(request):
+    """
+    Returns true if the user is logged in
+    """
+    is_authenticated = request.user.is_authenticated
+    return JsonResponse({'isAuthenticated': is_authenticated})
 
 
 def logout_view(request):
@@ -97,14 +110,6 @@ def register(request):
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "journal/register.html")
-
-
-def check_login(request):
-    """
-    Returns true if the user is logged in
-    """
-    is_authenticated = request.user.is_authenticated
-    return JsonResponse({'isAuthenticated': is_authenticated})
 
 
 #==============================================================================#

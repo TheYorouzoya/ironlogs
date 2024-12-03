@@ -107,7 +107,6 @@ class Exercise(models.Model):
     workout = models.ManyToManyField('Workout')
     name = models.CharField(max_length=200, db_index=True)
     body_part = models.ManyToManyField('BodyPart')
-    sub_body_part = models.CharField(max_length=200, null=True)
     description = models.CharField(
         max_length=2000,
         help_text="A brief description of the exercise",
@@ -121,7 +120,6 @@ class Exercise(models.Model):
             # "workout": self.workout.id,
             "name": self.name,
             "bodypart": [part.serialize() for part in self.body_part.all()],
-            "subBodyPart": self.sub_body_part,
             "description": self.description
         }
     
@@ -213,6 +211,13 @@ class Entry(models.Model):
     
 
 class BodyPart(models.Model):
+    """
+    Model which represents a body part. The user cannot create instances for this.
+    The number of body parts is fixed to these 6 values: 'Chest', 'Back', 'Arms',
+    'Shoulders', 'Core', 'Legs'. These initial values are contained in the
+    initial_data.json file inside the fixtures folder. Make sure to load them into
+    the database before running the application.
+    """
     id = models.UUIDField(
         primary_key=True,
         editable=False,
@@ -229,6 +234,7 @@ class BodyPart(models.Model):
 
     def __str__(self):
         return f"{self.name}"
+    
     
 
 class Day(models.Model):
@@ -251,3 +257,4 @@ class Day(models.Model):
 
     def __str__(self):
         return f"Day {self.day}: {self.get_day_display()}"
+    

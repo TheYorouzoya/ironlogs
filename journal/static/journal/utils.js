@@ -94,10 +94,11 @@ document.addEventListener('DOMContentLoaded', async function() {
  */
 function initializeViewListeners() {
     // Entry View Listener
-    document.querySelector('#entries').addEventListener('click', () => {
+    document.querySelector('#entries').addEventListener('click', async () => {
         if (history.state != null && !window.location.href.endsWith('#entries'))
-            history.pushState({"view": ENTRIES_VIEW}, '', '#entries');
-        loadEntriesView();
+            history.pushState({"view": ENTRIES_VIEW, "default": true}, '', '#entries');
+        await loadEntriesView();
+        await en_loadDefaults();
     });
 
     // Journal View Listener
@@ -223,7 +224,7 @@ function displayMessage(message, successFlag) {
  * @param   {String}      preFillValue   text to be populated into the input field
  * @returns {HTMLElement}                a completed input field assembly as described above
  */
-function returnTextInputField(labelText, fieldId, helpText, textAreaFlag, preFillValue) {
+function util_returnTextInputField(labelText, fieldId, helpText, textAreaFlag, preFillValue) {
     // initialize main container
     const container = document.createElement('div');
     container.classList.add("mb-3");
@@ -271,7 +272,7 @@ function returnTextInputField(labelText, fieldId, helpText, textAreaFlag, preFil
  * @param {Function} buttonListener  function which executes when the button is clicked
  * @returns 
  */
-function returnButton(buttonType, buttonText, buttonListener) {
+function util_returnButton(buttonType, buttonText, buttonListener) {
     const button = document.createElement('div');
     button.classList.add("btn", "btn-outline-" + buttonType);
     button.textContent = buttonText;

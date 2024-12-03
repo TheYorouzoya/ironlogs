@@ -3,6 +3,9 @@ body {
   background-color: #181818;
   color: white;
 }
+body a {
+  color: #FCA311;
+}
 body .btn-outline-info {
   border-color: #FCA311;
   color: #FCA311;
@@ -40,6 +43,18 @@ nav {
 }
 nav a {
   cursor: pointer;
+}
+nav .nav-link {
+  border-radius: 1rem;
+}
+nav .navbar-brand {
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  border-radius: 1rem;
+}
+nav .navbar-brand:hover, nav .nav-link:hover {
+  color: white;
+  background-color: #262b30;
 }
 
 .view-heading {
@@ -140,6 +155,44 @@ nav a {
 
 /*
 =================================================
+                LOGIN FORM
+=================================================
+*/
+#login-view {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 350px;
+  padding: 2rem;
+  border-radius: 1rem;
+  background-color: #262b30;
+}
+#login-view .login-form, #login-view .help-text {
+  margin-top: 0.5rem;
+}
+
+/*
+=================================================
+                REGISTER FORM
+=================================================
+*/
+#register-view {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 500px;
+  padding: 2rem;
+  border-radius: 1rem;
+  background-color: #262b30;
+}
+#register-view .register-form, #register-view .help-text {
+  margin-top: 0.5rem;
+}
+
+/*
+=================================================
                 JOURNAL VIEW
 =================================================
 */
@@ -200,6 +253,10 @@ nav a {
 }
 #entries-view #entries-calendar-container #calendar-dates .date-marked {
   background-color: #FCA311;
+  color: #14213D;
+}
+#entries-view #entries-calendar-container #calendar-dates .date-current {
+  background-color: white;
   color: #14213D;
 }
 #entries-view #entries-calendar-container #calendar-dates .col:hover:not(.date-faded):hover {

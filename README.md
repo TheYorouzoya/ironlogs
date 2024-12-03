@@ -1,5 +1,16 @@
 # IronLogs
-Before running the app, make sure you install the requirements as listed under [requirements.txt](./requirements.txt) (if you have `python` and `pip` installed, you can run `pip install -r requirements.txt`). 
+Before running the app, make sure you install the requirements as listed under [requirements.txt](./requirements.txt) (if you have `python` and `pip` installed, you can run `pip install -r requirements.txt`). While a demo database is provided in this repo, if you want to start with  a fresh database instance, delete the provided `db.sqlite3` file, remove all migrations in the [migrations](./journal/migrations/) folder, and run the following commands,
+
+```shell
+prompt> python manage.py makemigrations journal
+prompt> python manage.py migrate
+```
+
+to make migrations for the `journal` app and to apply the migrations to the database. The app needs some initial data for a couple of its models which is contained in the [fixtures](./journal/fixtures/) folder. To load it into the fresh db instance, run
+
+```shell
+prompt> python manage.py loaddata initial_data.json
+```
 
 Then run,
 ```shell
@@ -8,13 +19,13 @@ prompt> python manage.py runserver
 
 If you want to run the app in a virtual environment, then navigate into the project directory and execute `python -m venv .venv`. This will create a virtual environment named `.venv`. To activate the virtual environment, enter: `source .venv/bin/activate`. If it worked, you should see `(.venv)` before the command prompt.
 
-Install the requirements as mentioned above. Verify that Django is installed by entering: `python3 -m django --version`. Then, run the command `python manage.py runserver`
+Do the prequesits as mentioned above. Verify that Django is installed by entering: `python -m django --version`. Then, run the command `python manage.py runserver`
 
 This will spin up the app at your localhost (127.0.0.1). A link to the development server will also be printed in the terminal. You can Ctrl+click the link there to open the app in your browser.
 
 ## About
 
-For my day-to-day workouts I had been using a written journal to keep track of my workouts. An entry for the day would follow the format:
+For my day-to-day workouts at the gym, I had been using a written journal to keep track of them. An entry for the day would follow the format:
 ```
 Date: DD-MM-YYYY
 Day: [Day_of_the_week]
@@ -54,7 +65,7 @@ Additionally, a search bar is provided where the user can lookup a particular wo
 
 All submitted entries can be viewed from the Entries page. By default, the Entry View shows the current week's exercise entries. It also contains a calendar which marks the dates for which an entry exists. The user can click on a particular date and get the exercise entries associated with it. If no entry exists for the date, they are instead prompted to add one.
 
-Any particular entry can edited by clicking on the edit button (which also presents an option to remove the entry itself). Furthermore, the user can search for all entries within a particular time period. For these selected time periods, the view also presents the user with a doughnut chart representing bodypart workout distribution. The app uses the [Chart.js](https://www.chartjs.org/) library to display its charts.
+Any particular entry can be edited by clicking on the edit button (which also presents an option to remove the entry itself). Furthermore, the user can search for all entries within a particular time period. For these selected time periods, the view also presents the user with a doughnut chart representing bodypart workout distribution. The app uses the [Chart.js](https://www.chartjs.org/) library to display its charts.
 
 ![The Entry View showing all entries from the month of November along with the calendar and the doughnut chart](./docimages/entry-view.png)
 
@@ -71,6 +82,3 @@ Clicking on a particular exercise presents the user with the analytics for that 
 The app supports viewing on mobile, tablets, and other smaller devices.
 
 ![Image showing the responsive UI for different features mentioned above](./docimages/responsive.png)
-
-## Distinctiveness and Complexity (for CS50w)
-

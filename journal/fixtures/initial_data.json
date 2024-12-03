@@ -1,0 +1,93 @@
+[
+{
+    "model": "journal.bodypart",
+    "pk": "28963cc9-5e57-4a6b-aac5-38e6a5327051",
+    "fields": {
+        "name": "Arms"
+    }
+},
+{
+    "model": "journal.bodypart",
+    "pk": "39d530df-15fb-465a-a9b2-6032bf90b4db",
+    "fields": {
+        "name": "Core"
+    }
+},
+{
+    "model": "journal.bodypart",
+    "pk": "697324b0-d7e5-4cbd-ba33-e4142b70ef92",
+    "fields": {
+        "name": "Back"
+    }
+},
+{
+    "model": "journal.bodypart",
+    "pk": "8020fc68-6a09-4e53-9bb6-0cff13bce02e",
+    "fields": {
+        "name": "Chest"
+    }
+},
+{
+    "model": "journal.bodypart",
+    "pk": "c6e06595-a3d0-47dd-83f4-930a10207c12",
+    "fields": {
+        "name": "Legs"
+    }
+},
+{
+    "model": "journal.bodypart",
+    "pk": "f1e6fd90-d46a-4de4-b48d-c3681049ec4d",
+    "fields": {
+        "name": "Shoulders"
+    }
+},
+{
+    "model": "journal.day",
+    "pk": 1,
+    "fields": {
+        "day": 6
+    }
+},
+{
+    "model": "journal.day",
+    "pk": 2,
+    "fields": {
+        "day": 0
+    }
+},
+{
+    "model": "journal.day",
+    "pk": 3,
+    "fields": {
+        "day": 1
+    }
+},
+{
+    "model": "journal.day",
+    "pk": 5,
+    "fields": {
+        "day": 2
+    }
+},
+{
+    "model": "journal.day",
+    "pk": 6,
+    "fields": {
+        "day": 3
+    }
+},
+{
+    "model": "journal.day",
+    "pk": 7,
+    "fields": {
+        "day": 4
+    }
+},
+{
+    "model": "journal.day",
+    "pk": 8,
+    "fields": {
+        "day": 5
+    }
+}
+]

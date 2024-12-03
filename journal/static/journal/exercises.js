@@ -236,7 +236,7 @@ function ex_loadExerciseTable(ex_Data, currentPage, currentQuery) {
     // If a previous page in the query exists
     if (ex_Data["hasPrevious"]) {
         // initialize and append previous button
-        const previous = returnButton("info", "Previous", function () {
+        const previous = util_returnButton("info", "Previous", function () {
             // Browser link says "#exercises/all/page=[PAGE_NUM]" if we're in default view 
             // Otherwise the current query and page number are displayed instead
             let linkPrefix = (currentQuery == "") ? "all/" : `query?${currentQuery}&`;
@@ -261,7 +261,7 @@ function ex_loadExerciseTable(ex_Data, currentPage, currentQuery) {
     // If a next page in the query exists
     if (ex_Data["hasNext"]) {
         // Initialize and append next button
-        const next = returnButton("info", "Next", function () {
+        const next = util_returnButton("info", "Next", function () {
             // Browser link says "#exercises/all/page=[PAGE_NUM] if we're in default view"
             // Otherwise the current query and page number are displayed instead
             let linkPrefix = (currentQuery == "") ? "all/" : `query?${currentQuery}&`
@@ -365,7 +365,7 @@ function ex_loadDefaultForms() {
     formWrapper.append(searchForm);
 
     // button that resets the exercise table to show all exercises
-    const resetButton = returnButton("info", "Reset Table", function () {
+    const resetButton = util_returnButton("info", "Reset Table", function () {
         // prevent duplicate history pushes
         if (!decodeURI(window.location.href).trim().endsWith('#exercises')) {
             // push default view state
@@ -455,7 +455,7 @@ async function ex_loadExercise(exerciseId) {
     const wrapper = document.createElement('div');
 
     // initialize edit exercise button
-    const editExerciseButton = returnButton("info", "Edit", function() {
+    const editExerciseButton = util_returnButton("info", "Edit", function() {
         ex_displayEditExerciseForm();
     });
     wrapper.append(editExerciseButton);
@@ -606,7 +606,7 @@ async function ex_displayEditExerciseForm() {
     formContainer.setAttribute("id", "evEditExerciseForm");
     formContainer.dataset.exerciseId = id;
 
-    const exName = returnTextInputField(
+    const exName = util_returnTextInputField(
         "Exercise Name:",
         "evEditExerciseNameField",
         "Give your exercise a new name (up to 200 characters long)",
@@ -644,7 +644,7 @@ async function ex_displayEditExerciseForm() {
     })
 
 
-    const exDescription = returnTextInputField(
+    const exDescription = util_returnTextInputField(
         "Exercise Description:",
         "evEditExerciseDescriptionField",
         "Give a new suitable description for the exercise (upto 2000 characters long)",
@@ -660,20 +660,20 @@ async function ex_displayEditExerciseForm() {
     btnWrapper.classList.add("justify-content-end", "d-flex", "col");
     btnWrapper.setAttribute("id", "exEditExerciseButtons");
 
-    const submitButton = returnButton("info", "Submit", async function () {
+    const submitButton = util_returnButton("info", "Submit", async function () {
         if (await ex_submitEditExerciseForm()) {    // upon successful submit
             ex_loadExercise(id);                    // reload exercise page
         }
     });
 
-    const cancelButton = returnButton("info", "Cancel", function () {
+    const cancelButton = util_returnButton("info", "Cancel", function () {
         ex_loadExercise(id);
     });
 
     const deleteWrapper = document.createElement('div');
     deleteWrapper.classList.add("col");
 
-    const deleteButton = returnButton("danger", "Delete Exercise", async function () {
+    const deleteButton = util_returnButton("danger", "Delete Exercise", async function () {
         if (await ex_deleteExercise()) {
             loadExerciseView();
         }

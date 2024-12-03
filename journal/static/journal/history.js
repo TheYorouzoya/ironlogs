@@ -5,6 +5,8 @@
  * @param {Object} state the history state object to be processed 
  */
 async function processHistory(state) {
+    toggleView(state.view);
+
     if(!(await isLoggedIn())) {
         window.location.href = '/login/';
         return;
@@ -55,7 +57,6 @@ async function processJournalViewState(state) {
     // load view first
     await loadJournalView();
     if (state.workoutRow) {
-        console.log(state.workoutRow);
         jvEntryForms.innerHTML = "";
         // if a workout row on the program card was clicked
         jv_cardClickListener(document.getElementById(state.workoutRow));
@@ -93,6 +94,7 @@ async function processJournalViewState(state) {
  * @param {ProgramState} state the history state object to be processed
  */
 async function processProgramViewState(state) {
+    hideProgramView();
     await loadProgramView();
     if (state.addProgram) { // if the Add Program button was clicked
         pv_displayAddProgramForm();
@@ -127,6 +129,7 @@ async function processProgramViewState(state) {
     if (state.editWorkout) {// if the user clicked Edit Workout on a workout
         pv_displayEditWorkoutForm(document.getElementById(state.editWorkout));
     }
+    showProgramView();
 }
 
 /**
@@ -192,11 +195,15 @@ async function processExercisesViewState(state) {
  * @param {EntriesState} state the Entries state object to be processed
  */
 async function processEntriesViewState(state) {
+    hideEntriesView();
     // load view first
     await loadEntriesView();
+    if (state.default) {
+        await en_loadDefaults();
+    }
     if (state.calendar) {
         // if a calendar widget state exists
-        en_loadCalendar(new Date(state.calendar));
+        await en_loadCalendar(new Date(state.calendar));
     }
     if (state.range) {
         // if user searched entries in a date range
@@ -206,8 +213,14 @@ async function processEntriesViewState(state) {
     }
     if (state.calendarDateClicked) {
         // if the user clicked a date on the calendar widget
+        let header = `Add entry on ${new Date(state.calendar).toDateString()}:`;
         if (state.calendarDateClicked.entry)
+            header = `Entries on ${new Date(state.calendar).toDateString()}:`;
             en_loadEntryOnDate(state.calendar);
+
+        en_populateEntriesHeader(header);
         en_addEntryOnDate(state.calendar);
+        // en_markCurrentDate(state.calendar.split('-')[2]);
     }
+    showEntriesView();
 }

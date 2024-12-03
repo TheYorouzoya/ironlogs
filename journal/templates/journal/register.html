@@ -1,16 +1,16 @@
 {% extends "journal/layout.html" %}
 
 {% block body %}
-
+    <div id="register-view" data-bs-theme="dark">
     <div class="form-container">
-        <div class="register-form">
-            <h2>register</h2>
+        
+            <div class="display-6">REGISTER</div>
 
             {% if message %}
                 <div>{{ message }}</div>
             {% endif %}
             
-            <form action="{% url 'register' %}" method="post">
+            <form action="{% url 'register' %}" method="post" class="register-form">
                 {% csrf_token %}
                 <div class="mb-3">
                     <input class="form-control" autofocus type="text" name="username" placeholder="Username">
@@ -24,12 +24,14 @@
                 <div class="mb-3">
                     <input class="form-control" type="password" name="confirmation" placeholder="Confirm Password">
                 </div>
-                <input class="btn btn-primary" type="submit" value="Register">
+                <div class="justify-content-end d-flex">
+                    <input class="btn btn-outline-info" type="submit" value="Register">
+                </div>
             </form>
             
 
-            Already have an account? <a href="{% url 'login' %}">Log In here.</a>
-        </div>
+            <div class="help-text">Already have an account? <a href="{% url 'login' %}">Log In here.</a></div>
+        
     </div>
-
+    </div>
 {% endblock %}
