@@ -162,14 +162,19 @@ nav .navbar-brand:hover, nav .nav-link:hover {
   position: fixed;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -60%);
+  align-items: center;
+}
+#login-view .login-form, #login-view .help-text {
+  margin-top: 0.5rem;
+}
+#login-view .form-container {
+  position: relative;
+  align-self: center;
   max-width: 350px;
   padding: 2rem;
   border-radius: 1rem;
   background-color: #262b30;
-}
-#login-view .login-form, #login-view .help-text {
-  margin-top: 0.5rem;
 }
 
 /*
@@ -181,14 +186,18 @@ nav .navbar-brand:hover, nav .nav-link:hover {
   position: fixed;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -60%);
+}
+#register-view .register-form, #register-view .help-text {
+  margin-top: 0.5rem;
+}
+#register-view .form-container {
+  position: relative;
+  align-self: center;
   max-width: 500px;
   padding: 2rem;
   border-radius: 1rem;
   background-color: #262b30;
-}
-#register-view .register-form, #register-view .help-text {
-  margin-top: 0.5rem;
 }
 
 /*

@@ -193,15 +193,21 @@ nav {
     position: fixed;
     top: 50%;
     left: 50%;
-    -webkit-transform: translate(-50%, -50%);
-    transform: translate(-50%, -50%);
-    max-width: 350px;
-    padding: 2rem;
-    border-radius: 1rem;
-    background-color: $bootstrap-dark;
+    -webkit-transform: translate(-50%, -60%);
+    transform: translate(-50%, -60%);
+    align-items: center;
 
     .login-form, .help-text {
         margin-top: $element-top-margin;
+    }
+
+    .form-container {
+        position: relative;
+        align-self:center;
+        max-width: 350px;
+        padding: 2rem;
+        border-radius: 1rem;
+        background-color: $bootstrap-dark;
     }
 }
 
@@ -214,15 +220,19 @@ nav {
     position: fixed;
     top: 50%;
     left: 50%;
-    -webkit-transform: translate(-50%, -50%);
-    transform: translate(-50%, -50%);
-    max-width: 500px;
-    padding: 2rem;
-    border-radius: 1rem;
-    background-color: $bootstrap-dark;
+    -webkit-transform: translate(-50%, -60%);
+    transform: translate(-50%, -60%);
 
     .register-form, .help-text {
         margin-top: $element-top-margin;
+    }
+    .form-container {
+        position: relative;
+        align-self:center;
+        max-width: 500px;
+        padding: 2rem;
+        border-radius: 1rem;
+        background-color: $bootstrap-dark;
     }
 }
 

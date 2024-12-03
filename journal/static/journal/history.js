@@ -5,12 +5,13 @@
  * @param {Object} state the history state object to be processed 
  */
 async function processHistory(state) {
-    toggleView(state.view);
 
     if(!(await isLoggedIn())) {
         window.location.href = '/login/';
         return;
     }
+
+    toggleView(state.view);
     
     switch(state.view) {
         case JOURNAL_VIEW:
