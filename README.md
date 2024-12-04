@@ -1,3 +1,5 @@
+![Cover image with the logo and the IronLogs text](./docimages/cover.png)
+
 # IronLogs
 Before running the app, make sure you install the requirements as listed under [requirements.txt](./requirements.txt) (if you have `python` and `pip` installed, you can run `pip install -r requirements.txt`). While a demo database is provided in this repo, if you want to start with  a fresh database instance, delete the provided `db.sqlite3` file, remove all migrations in the [migrations](./journal/migrations/) folder, and run the following commands,
 
