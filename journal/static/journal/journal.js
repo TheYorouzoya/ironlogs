@@ -40,7 +40,6 @@ function jv_init() {
  * or more entry forms in the container.
  */
 async function loadJournalView() {
-    toggleView(JOURNAL_VIEW);
     hideJournalView();
     emptyJournalView();
     
@@ -52,11 +51,11 @@ async function loadJournalView() {
         const forms = await jv_returnWorkoutExerciseForms(workoutToday);
         forms.forEach(entryForm => jvEntryForms.append(entryForm));
     }
-    jv_loadSearchBar();
 
     // broadcast journal load event
     jvContainer.dispatchEvent(jvLoaded);
     showJournalView();
+    toggleView(JOURNAL_VIEW);
 }
 
 function hideJournalView() {
@@ -114,17 +113,19 @@ async function jv_loadCurrentProgramWorkouts() {
     
     if (program == false) { // no currently active program
         jvHeader.textContent = "No Currently Active Program. Please go to Programs and " +
-                                "create/set a program as your current program";
+                                "create/set a program as your current program.";
         return;
     }
 
     const workouts = data["workouts"];
 
     if (workouts == false) { // user has no workouts in the program
-        jvHeader.textContent = "Your workout list is empty. Please go to Programs and" +
-                                " create/add workouts to your current program";
+        jvHeader.textContent = "Your current program's workout list is empty. Please go to Programs and" +
+                                " create/add workouts to your current program.";
         return;
     }
+
+    jv_loadSearchBar();
 
     // initialize workout card
     const workoutCard = document.createElement('div');

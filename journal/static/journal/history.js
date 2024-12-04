@@ -10,8 +10,6 @@ async function processHistory(state) {
         window.location.href = '/login/';
         return;
     }
-
-    toggleView(state.view);
     
     switch(state.view) {
         case JOURNAL_VIEW:
@@ -30,6 +28,7 @@ async function processHistory(state) {
             console.log("invalid view index");
             return;
     }
+
 }
 
 async function isLoggedIn() {

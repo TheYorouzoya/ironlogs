@@ -76,14 +76,14 @@ document.addEventListener('DOMContentLoaded', async function() {
     } else {
         // By default, load the journal view
         history.replaceState({"view": JOURNAL_VIEW}, '', '#home');
-        loadJournalView();
+        await loadJournalView();
     }
     
     window.addEventListener('popstate', async function (event) {
         if (event.state) {
-            processHistory(history.state);
+            await processHistory(history.state);
         } else {
-            loadJournalView();
+            await loadJournalView();
         }
     })
 });
@@ -149,6 +149,13 @@ function toggleView(viewIndex) {
     document.querySelector('#entries-view').style.display = viewValues[ENTRIES_VIEW];
 }
 
+function hideAllContent() {
+    document.querySelector('#content').style.display = "none";
+}
+
+function displayAllContent() {
+    document.querySelector('#content').style.display = "block";
+}
 
 /**
  * Displays the given message as a Bootstrap toast.

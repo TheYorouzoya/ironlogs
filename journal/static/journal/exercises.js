@@ -16,12 +16,12 @@ function ex_init() {
  * Loads the exercise view, emptying any previous contents.
  */
 async function loadExerciseView() {
-    // display journal view
-    toggleView(EXERCISES_VIEW);
-
     emptyExerciseView();
     await ex_loadAllExercisesTable();
     exWrapper.style.display = "block";
+
+    // display journal view
+    toggleView(EXERCISES_VIEW);
 }
 
 
@@ -53,9 +53,27 @@ async function ex_loadAllExercisesTable() {
     const DEFAULT_PAGE_NUMBER = 1;
     const DEFAULT_QUERY = "";
 
-    ex_loadDefaultForms();
     ex_populateHeader("All Exercises:");
-    await ex_loadExerciseTableWithGivenQuery(DEFAULT_QUERY, DEFAULT_PAGE_NUMBER);
+    // fetch exercise data from the server
+    const apiResponse = await fetch(`exercises/filter/?pageNum=${DEFAULT_PAGE_NUMBER}&${DEFAULT_QUERY}`);
+    const data = await apiResponse.json();
+    
+    // display error message if something goes wrong and bail
+    if (data.error) {
+        displayMessage(data.error, false);
+        return;
+    }
+
+    if (data["exercises"] == "") {
+        exContent.textContent = "You have no exercises. Go to Programs and populate your program with workouts and exercises."
+        return;
+    }
+
+    // loads exercise search bar
+    ex_loadDefaultForms();
+
+    // pass the data to the table generator
+    ex_loadExerciseTable(data, DEFAULT_PAGE_NUMBER, DEFAULT_QUERY);
 }
 
 

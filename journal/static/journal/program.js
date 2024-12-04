@@ -29,11 +29,11 @@ function pv_init() {
  * user programs.
  */
 async function loadProgramView() {
-    // display program view
-    toggleView(PROGRAM_VIEW);
-
     emptyProgramView();
     await pv_loadAllPrograms();
+
+    // display program view
+    toggleView(PROGRAM_VIEW);
 }
 
 
@@ -106,9 +106,9 @@ async function pv_loadAllPrograms() {
     // Update Header
     pvHeader.textContent = "Your Programs";
 
-    if (data["programs"] === '') {
+    if (data["programs"] == "") {
         pvDescription.textContent = "You have no programs. Click the 'Add New Program' " +
-                                    "to create a new program.";
+                                    "button to create a new program.";
         return;
     }
 
@@ -1215,73 +1215,81 @@ function pv_displayWorkoutForms(clickedRow, workouts) {
     const rowId = clickedRow.getAttribute("id");
     const exerciseContainer = document.querySelector('#pvExerciseContainer');
     
+    const pId = document.querySelector('#pvWorkoutContainer').dataset.programId;
+    const pName = document.querySelector('#pvWorkoutContainer').dataset.programName;
+    
     exerciseContainer.innerHTML = `
         <div class="display-6 pvExerciseHeader">Add Workout on ${clickedRow.dataset.dayName}:</div>
-        <div id="pvExerciseHelptext"> Choose from an existing workout:</div>
+        <div id="pvExerciseHelptext"> </div>
         `;
 
     const main_container = document.createElement('div');
     main_container.setAttribute("id", "pvWorkoutFormContainer");
 
-    // a select field where the user can pick an existing workout
-    const sl_wrapper = document.createElement('div');
-    sl_wrapper.setAttribute("id", "pvWkFmSlWrapper");
-    const sl_Container = document.createElement('form');
-    sl_Container.classList.add("form-control");
+    if (workouts.length > 0) {
+        // a select field where the user can pick an existing workout
+        const sl_wrapper = document.createElement('div');
+        sl_wrapper.setAttribute("id", "pvWkFmSlWrapper");
 
-    const sl_label = document.createElement('label');
-    sl_label.classList.add("form-label");
-    sl_label.setAttribute("for", "workoutSelectMenu");
-    sl_label.textContent = "Workout:";
+        const helpText = document.createElement("div");
+        helpText.textContent = "Choose from an existing workout:";
+        sl_wrapper.append(helpText);
 
-    const selectField = document.createElement('select');
-    selectField.classList.add("form-select");
-    selectField.setAttribute("aria-label", "Workout selection drop-down");
-    selectField.setAttribute("id", "workoutSelectMenu");
+        const sl_Container = document.createElement('form');
+        sl_Container.classList.add("form-control");
 
-    // Default option
-    let row = document.createElement('option');
-    row.setAttribute("selected", "true");
-    row.textContent = "Select an existing workout";
+        const sl_label = document.createElement('label');
+        sl_label.classList.add("form-label");
+        sl_label.setAttribute("for", "workoutSelectMenu");
+        sl_label.textContent = "Workout:";
 
-    selectField.append(row);
+        const selectField = document.createElement('select');
+        selectField.classList.add("form-select");
+        selectField.setAttribute("aria-label", "Workout selection drop-down");
+        selectField.setAttribute("id", "workoutSelectMenu");
 
-    let counter = 0;
-    workouts.forEach(workout => {   // Append all existing workouts as options
-        row = document.createElement('option');
-        row.setAttribute("value", counter);
-        row.textContent = workout["name"];
-        row.dataset.workoutId = workout["id"];
-        row.dataset.day = day;
+        // Default option
+        let row = document.createElement('option');
+        row.setAttribute("selected", "true");
+        row.textContent = "Select an existing workout";
 
         selectField.append(row);
-        counter++;
-    });
 
-    const pId = document.querySelector('#pvWorkoutContainer').dataset.programId;
-    const pName = document.querySelector('#pvWorkoutContainer').dataset.programName;
-    
-    const submitWorkoutButton = util_returnButton("info", "Add Workout", async function () {
-        // on successful submission, reload updated program data
-        let workoutName = selectField.options[selectField.selectedIndex].textContent.trim();
-        if (await pv_submitWorkoutSelectFieldForm()) {
-            history.replaceState(
-                {
-                    "view": PROGRAM_VIEW,
-                    "program": pId,
-                    "workout": rowId
-                },
-                '',
-                `#program/${pName}/${workoutName}`
-            );
-            await pv_loadProgram(pId);
-            pv_displayWorkoutExercises(document.getElementById(rowId));
-        }
-    });
+        let counter = 0;
+        workouts.forEach(workout => {   // Append all existing workouts as options
+            row = document.createElement('option');
+            row.setAttribute("value", counter);
+            row.textContent = workout["name"];
+            row.dataset.workoutId = workout["id"];
+            row.dataset.day = day;
 
-    sl_Container.append(sl_label, selectField, submitWorkoutButton);
-    sl_wrapper.append(sl_Container);
-    main_container.append(sl_wrapper);
+            selectField.append(row);
+            counter++;
+        });
+        
+        const submitWorkoutButton = util_returnButton("info", "Add Workout", async function () {
+            // on successful submission, reload updated program data
+            let workoutName = selectField.options[selectField.selectedIndex].textContent.trim();
+            if (await pv_submitWorkoutSelectFieldForm()) {
+                history.replaceState(
+                    {
+                        "view": PROGRAM_VIEW,
+                        "program": pId,
+                        "workout": rowId
+                    },
+                    '',
+                    `#program/${pName}/${workoutName}`
+                );
+                await pv_loadProgram(pId);
+                pv_displayWorkoutExercises(document.getElementById(rowId));
+            }
+        });
+
+        sl_Container.append(sl_label, selectField, submitWorkoutButton);
+        sl_wrapper.append(sl_Container);
+        main_container.append(sl_wrapper);
+    }
+
     
 
     // a form to add a new workout to the program on the selected day
@@ -1312,15 +1320,18 @@ function pv_displayWorkoutForms(clickedRow, workouts) {
                     '',
                     `#program/${pName}/${workoutName}`
                 );
-                await pv_loadWorkouts(programId);
-                document.querySelector('#pvExerciseContainer').innerHTML = "";
+                await pv_loadProgram(pId);
+                pv_displayWorkoutExercises(document.getElementById(rowId));
+                // document.querySelector('#pvExerciseContainer').innerHTML = "";
             }
         }
     ))
 
     const workoutFormHelptext = document.createElement('div');
     workoutFormHelptext.setAttribute("id", "pvWkFmHelptext");
-    workoutFormHelptext.textContent = "Or add a new workout:";
+    if (workouts.length > 0)
+        workoutFormHelptext.textContent = "Or add a new workout:";
+
 
     const workoutFormWrapper = document.createElement('div');
     workoutFormWrapper.setAttribute("id", "pvWkFmWrapper");
@@ -1348,7 +1359,7 @@ async function pv_submitAddWorkoutForm(day) {
     // Empty workout name is invalid
     if (workoutName == "") {
         nameField.classList.add("is-invalid");
-        return;
+        return false;
     }
 
     // Attempt to submit data
@@ -1368,9 +1379,10 @@ async function pv_submitAddWorkoutForm(day) {
 
     if (data.error) {   // on failure
         displayMessage(data.error, false);
+        return false;
     } else {            // on success
         displayMessage(data.message, true);
-
+        return true;
     }
 }
 

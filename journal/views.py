@@ -891,7 +891,7 @@ def exerciseEntries(request, exerciseId):
             "error": "Exercise with ID does not exist!"
         }, status=404)
     
-    entries = Entry.objects.filter(trainee=request.user, exercise=exercise).order_by("timestamp")
+    entries = Entry.objects.filter(trainee=request.user, exercise=exercise).order_by("-timestamp")
 
     return JsonResponse({
         "exercise": exercise.name,
