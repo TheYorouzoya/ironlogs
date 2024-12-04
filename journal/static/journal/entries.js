@@ -476,7 +476,7 @@ async function en_loadCalendar(anchorDate) {
     })
     
     // Calculate next month and year and attach listener for navigation
-    const nextMonth = month === 11 ? 1 : month + 1;
+    const nextMonth = month === 11 ? 0 : month + 1;
     const nextYear = month === 11 ? year + 1 : year;
     document.querySelector('#calendar-next').addEventListener('click', () => {
         en_loadCalendar(new Date(nextYear, nextMonth, 1));
