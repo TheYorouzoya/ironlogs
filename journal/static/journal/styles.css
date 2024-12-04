@@ -47,7 +47,7 @@ nav a {
 nav .nav-link {
   border-radius: 1rem;
 }
-nav .navbar-brand:hover {
+nav .nav-link:hover {
   color: white;
   background-color: #262b30;
 }
@@ -478,6 +478,10 @@ nav .navbar-brand:hover {
   nav .navbar-brand {
     padding-left: 0.5rem;
     padding-right: 0.5rem;
+  }
+  nav .nav-link {
+    border-radius: 0;
+    padding-left: 0.5rem;
   }
   #login-logo svg {
     width: 100vw;

@@ -67,7 +67,7 @@ nav {
         border-radius: 1rem;
     }
 
-    .navbar-brand:hover {
+    .nav-link:hover {
         color: white;
         background-color: $bootstrap-dark;
     }
@@ -593,6 +593,10 @@ nav {
         .navbar-brand {
             padding-left: 0.5rem;
             padding-right: 0.5rem;
+        }
+        .nav-link {
+            border-radius: 0;
+            padding-left: 0.5rem;
         }
     }
 
