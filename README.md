@@ -12,16 +12,16 @@ to make migrations for the `journal` app and to apply the migrations to the data
 prompt> python manage.py loaddata initial_data.json
 ```
 
-Then run,
+To launch a development server, run
 ```shell
 prompt> python manage.py runserver
 ```
 
+This will spin up the app at your localhost (127.0.0.1). A link to the development server will also be printed in the terminal. You can Ctrl+click the link there to open the app in your browser.
+
 If you want to run the app in a virtual environment, then navigate into the project directory and execute `python -m venv .venv`. This will create a virtual environment named `.venv`. To activate the virtual environment, enter: `source .venv/bin/activate`. If it worked, you should see `(.venv)` before the command prompt.
 
-Do the prequesits as mentioned above. Verify that Django is installed by entering: `python -m django --version`. Then, run the command `python manage.py runserver`
-
-This will spin up the app at your localhost (127.0.0.1). A link to the development server will also be printed in the terminal. You can Ctrl+click the link there to open the app in your browser.
+Do the prequesits as mentioned above. Verify that Django is installed by entering: `python -m django --version`. Then, run the command `python manage.py runserver` to run a development server.
 
 ## About
 
@@ -35,8 +35,6 @@ Exercise_name: sets x reps (weight)
 Exercise_name: sets x reps (weight)
 Exercise_name: sets x reps (weight)
 Exercise_name: sets x reps (weight)
-
-[Some notes]
 ```
 
 I would devise a program, decide how many workouts I'll have per week, decide how many exercises each workout will have, and then record the particular day's entry in my journal in the above format. This project is my attempt to turn this journaling system into a web app. With that being said,
