@@ -712,7 +712,8 @@ nav {
         }
 
         #calendar-current-date.display-6 {
-            font-size: 1.75rem;
+            font-size: 1.5rem;
+            padding-right: 0;
         }
 
         #calendar-days {
@@ -723,6 +724,10 @@ nav {
             font-size: 3.2vw;
         }
 
+        #calendar-body .col {
+            padding-left: 3px;
+            padding-right: 3px;
+        }
 
         #entries-entry-parent-container {
             min-width: 100%;

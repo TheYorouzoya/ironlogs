@@ -569,13 +569,18 @@ nav .navbar-brand:hover {
     margin-top: 0.5rem;
   }
   #entries-view #calendar-current-date.display-6 {
-    font-size: 1.75rem;
+    font-size: 1.5rem;
+    padding-right: 0;
   }
   #entries-view #calendar-days {
     font-size: 3.1vw;
   }
   #entries-view #calendar-dates {
     font-size: 3.2vw;
+  }
+  #entries-view #calendar-body .col {
+    padding-left: 3px;
+    padding-right: 3px;
   }
   #entries-view #entries-entry-parent-container {
     min-width: 100%;
