@@ -67,13 +67,7 @@ nav {
         border-radius: 1rem;
     }
 
-    .navbar-brand {
-        padding-left: 0.5rem;
-        padding-right: 0.5rem;
-        border-radius: 1rem;
-    }
-
-    .navbar-brand:hover, .nav-link:hover {
+    .navbar-brand:hover {
         color: white;
         background-color: $bootstrap-dark;
     }
@@ -204,6 +198,7 @@ nav {
     .form-container {
         position: relative;
         align-self:center;
+        width: 80vw;
         max-width: 350px;
         padding: 2rem;
         border-radius: 1rem;
@@ -229,6 +224,7 @@ nav {
     .form-container {
         position: relative;
         align-self:center;
+        width: 80vw;
         max-width: 500px;
         padding: 2rem;
         border-radius: 1rem;
@@ -289,11 +285,11 @@ nav {
         border-radius: 0.5em;
         background-color: $bootstrap-dark;
 
-        #calendar-header {
-            #calendar-current-date {
-                font-size: 2rem;
-            }
-        }
+        // #calendar-header {
+        //     #calendar-current-date {
+        //         font-size: 2rem;
+        //     }
+        // }
 
         #calendar-nav btn {
             color:$palette-color-1;
@@ -593,6 +589,18 @@ nav {
 */
 
 @media (max-width: 992px) {
+    nav {
+        .navbar-brand {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+        }
+    }
+
+    #login-logo {
+        svg {
+            width: 100vw;
+        }
+    }
     /*
     =================================================
                     JOURNAL VIEW
@@ -658,7 +666,6 @@ nav {
         }
     }
 
-
     /*
     =================================================
                     ENTRIES VIEW
@@ -671,6 +678,51 @@ nav {
             min-width: 100%;
             margin-top: $element-top-margin;
         }
+
+        #calendar-current-date.display-6 {
+            font-size: 1.75rem;
+        }
+
+        #entries-entry-parent-container {
+            min-width: 100%;
+            margin-top: 1em;
+        }
+    }
+
+    /*
+    =================================================
+                    ENTRIES VIEW
+    =================================================
+    */
+
+    #exercises-view {
+        #exerciseChartContainer {
+            position: relative;
+
+        }
+    }
+}
+
+@media (max-width: 420px) {
+    #entries-view {
+
+        #entries-calendar-wrapper {
+            min-width: 100%;
+            margin-top: $element-top-margin;
+        }
+
+        #calendar-current-date.display-6 {
+            font-size: 1.75rem;
+        }
+
+        #calendar-days {
+            font-size: 3.1vw;
+        }
+
+        #calendar-dates {
+            font-size: 3.2vw;
+        }
+
 
         #entries-entry-parent-container {
             min-width: 100%;
@@ -687,6 +739,14 @@ nav {
 */
 
 @media (min-width: 992px) {
+    nav {
+        .navbar-brand {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+            border-radius: 1rem;
+        }
+    }
+
     html {
         overflow-y: scroll;
     }
@@ -705,6 +765,10 @@ nav {
         
         #entries-view-content {
             margin-top: $element-top-margin;
+        }
+
+        #calendar-current-date.display-6 {
+            font-size: 2rem;
         }
         
         #entries-calendar-wrapper {

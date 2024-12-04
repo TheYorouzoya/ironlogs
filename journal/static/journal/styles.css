@@ -47,12 +47,7 @@ nav a {
 nav .nav-link {
   border-radius: 1rem;
 }
-nav .navbar-brand {
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
-  border-radius: 1rem;
-}
-nav .navbar-brand:hover, nav .nav-link:hover {
+nav .navbar-brand:hover {
   color: white;
   background-color: #262b30;
 }
@@ -171,6 +166,7 @@ nav .navbar-brand:hover, nav .nav-link:hover {
 #login-view .form-container {
   position: relative;
   align-self: center;
+  width: 80vw;
   max-width: 350px;
   padding: 2rem;
   border-radius: 1rem;
@@ -194,6 +190,7 @@ nav .navbar-brand:hover, nav .nav-link:hover {
 #register-view .form-container {
   position: relative;
   align-self: center;
+  width: 80vw;
   max-width: 500px;
   padding: 2rem;
   border-radius: 1rem;
@@ -236,9 +233,6 @@ nav .navbar-brand:hover, nav .nav-link:hover {
   padding: 0.75em;
   border-radius: 0.5em;
   background-color: #262b30;
-}
-#entries-view #entries-calendar-container #calendar-header #calendar-current-date {
-  font-size: 2rem;
 }
 #entries-view #entries-calendar-container #calendar-nav btn {
   color: #FCA311;
@@ -481,6 +475,13 @@ nav .navbar-brand:hover, nav .nav-link:hover {
 =================================================
 */
 @media (max-width: 992px) {
+  nav .navbar-brand {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+  #login-logo svg {
+    width: 100vw;
+  }
   /*
   =================================================
                   JOURNAL VIEW
@@ -546,6 +547,36 @@ nav .navbar-brand:hover, nav .nav-link:hover {
     min-width: 100%;
     margin-top: 0.5rem;
   }
+  #entries-view #calendar-current-date.display-6 {
+    font-size: 1.75rem;
+  }
+  #entries-view #entries-entry-parent-container {
+    min-width: 100%;
+    margin-top: 1em;
+  }
+  /*
+  =================================================
+                  ENTRIES VIEW
+  =================================================
+  */
+  #exercises-view #exerciseChartContainer {
+    position: relative;
+  }
+}
+@media (max-width: 420px) {
+  #entries-view #entries-calendar-wrapper {
+    min-width: 100%;
+    margin-top: 0.5rem;
+  }
+  #entries-view #calendar-current-date.display-6 {
+    font-size: 1.75rem;
+  }
+  #entries-view #calendar-days {
+    font-size: 3.1vw;
+  }
+  #entries-view #calendar-dates {
+    font-size: 3.2vw;
+  }
   #entries-view #entries-entry-parent-container {
     min-width: 100%;
     margin-top: 1em;
@@ -557,6 +588,11 @@ nav .navbar-brand:hover, nav .nav-link:hover {
 =================================================
 */
 @media (min-width: 992px) {
+  nav .navbar-brand {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    border-radius: 1rem;
+  }
   html {
     overflow-y: scroll;
   }
@@ -568,6 +604,9 @@ nav .navbar-brand:hover, nav .nav-link:hover {
   }
   #entries-view #entries-view-content {
     margin-top: 0.5rem;
+  }
+  #entries-view #calendar-current-date.display-6 {
+    font-size: 2rem;
   }
   #entries-view #entries-calendar-wrapper {
     min-width: 400px;
