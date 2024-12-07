@@ -573,12 +573,15 @@ function ex_displayExerciseEntries(data) {
     header.classList.add("display-6");
     header.textContent = `Last ${data["entries"].length} Entries:`;
 
-    data["entries"].forEach(entry => {
+    const entries = data["entries"];
+
+    for (let i = entries.length - 1; i >= 0; i--) {
+        let entry = entries[i];
         const entryItem = document.createElement('li');
         entryItem.classList.add("list-group-item");
         entryItem.textContent = `${entry.date}:   ${entry.sets} sets of ${entry.reps} reps for ${entry.intensity}kgs`;
         entryContainer.append(entryItem);
-    })
+    }
     exContent.append(header, entryContainer);
 }
 
